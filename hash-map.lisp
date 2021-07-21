@@ -4,8 +4,10 @@
 
 (in-package #:hash-map)
 
-(defstruct (hash-map (:constructor %make-hash-map))
-  (table (make-hash-table :test #'eql)))
+(defstruct (hash-map (:constructor make-hash-map (&key
+                                                    (test #'eql)
+                                                    (size 100))))
+  (table (make-hash-table :test test :size size)))
 
 (defmethod inc! ((hash-map hash-map)
                  key
