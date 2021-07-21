@@ -1,6 +1,10 @@
 (defpackage hash-map
   (:use #:cl)
-  (:nicknames #:m))
+  (:nicknames #:m)
+  (:export #:make-hash-map
+           #:inc!
+           #:dec!
+           #:query))
 
 (in-package #:hash-map)
 
