@@ -10,24 +10,27 @@
 
 (defstruct (hash-map (:constructor make-hash-map (&key
                                                     (test #'eql)
-                                                    (size 100))))
-  (table (make-hash-table :test test :size size)))
+                                                    (size 100)
+                                                    (default-value 0))))
+  (table (make-hash-table :test test :size size))
+  (default-value default-value))
 
 (defmethod inc! ((hash-map hash-map)
                  key
                  value)
-  (with-slots (table) hash-map
-    (incf (gethash key table 0) value)))
+  (with-slots (table default-value) hash-map
+    (incf (gethash key table default-value) value)))
 
 (defmethod dec! ((hash-map hash-map)
                  key
                  value)
-  (with-slots (table) hash-map
-    (decf (gethash key table 0) value)))
+  (with-slots (table default-value) hash-map
+    (decf (gethash key table default-value) value)))
 
 (defmethod query ((hash-map hash-map)
                   key)
-  (gethash key (hash-map-table hash-map) 0))
+  (with-slots (table default-value) hash-map
+    (gethash key table default-value)))
 
 #+nil
 (let ((m (%make-hash-map)))
