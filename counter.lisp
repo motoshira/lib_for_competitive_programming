@@ -1,33 +1,43 @@
-(defstruct (counter (:constructor %make-counter))
-  (hash nil :type hash-table))
+(defpackage counter
+  (:use #:cl)
+  (:nicknames #:m)
+  (:export #:make-counter
+           #:inc!
+           #:dec!
+           #:query))
 
-(defun make-counter (sequence &key (test #'eql) (size 10000))
-  (let ((counter (%make-counter :hash (make-hash-table :test test :size size))))
-    (map nil
-         (lambda (x)
-           (incf (gethash x (counter-hash counter) 0)))
-         sequence)
-    counter))
+(in-package #:counter)
 
-(defmacro counter-ref (counter key)
-  `(gethash ,key ,(counter-hash counter) 0))
+(defstruct (counter (:constructor make-counter (&key
+                                                  (test #'eql)
+                                                  (size 100)
+                                                  (default-value 0))))
+  (table (make-hash-table :test test :size size))
+  (default-value default-value))
 
-(defmacro counter-inc (counter key)
-  `(incf (counter-ref ,counter ,key)))
+(defmethod inc! ((counter counter)
+                 key
+                 value)
+  (with-slots (table default-value) counter
+    (incf (gethash key table default-value) value)))
 
-(defmethod counter-items ((counter counter))
-  (loop for key being each hash-key of (counter-hash counter)
-          using (hash-value val)
-        collect (cons key val)))
+(defmethod dec! ((counter counter)
+                 key
+                 value)
+  (with-slots (table default-value) counter
+    (decf (gethash key table default-value) value)))
 
-(defmethod counter-keys ((counter counter))
-  (loop for key being each hash-key of (counter-hash counter)
-        collect key))
+(defmethod query ((counter counter)
+                  key)
+  (with-slots (table default-value) counter
+    (gethash key table default-value)))
 
-(defmethod counter-values ((counter counter))
-  (loop for val being each hash-value of (counter-hash counter)
-        collect val))
+#+nil
+(let ((m (make-counter)))
+  (inc! m 0 1)
+  (inc! m 1 3)
+  (assert (= 3 (query m 1)))
+  (dec! m 1 1)
+  (assert (= 2 (query m 1))))
 
-(defmethod counter-size ((counter counter)) 
-  (hash-table-count (counter-hash counter)))
-
+(in-package #:cl-user)
