@@ -29,6 +29,11 @@
       (%traverse treap)
       (reverse res))))
 
+(defmethod print-object ((obj treap)
+                         s)
+  (print-unreadable-object (obj s :type t :identity t)
+    (princ (treap->list obj) s)))
+
 (defun list->treap (list)
   "デバッグ用。O(n)"
   (let ((xs (copy-seq list)))
