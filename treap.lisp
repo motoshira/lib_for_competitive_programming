@@ -197,19 +197,32 @@
       (rove:ok (equal (treap->list (merge ws-treap rs-treap))
                       (concatenate 'list ws rs))
                "Merge two treap preserving order"))
-    ;; これ以下のテストが通ったり通らなかったりする...
     (rove:testing "split"
       (rove:ok (every #'equal
                       (mapcar #'treap->list
                               (multiple-value-list
                                (split ws-treap 2)))
                       '((1 3)
-                        (5 7 10)))))
+                        (5 7 10)))
+               "Split at 2")
+      (rove:ok (every #'equal
+                      (mapcar #'treap->list
+                              (multiple-value-list
+                               (split ws-treap 3)))
+                      '((1 3 5)
+                        (7 10)))
+               "Split at 3"))
     (rove:testing "insert"
       (rove:ok (equal (treap->list (insert ws-treap
                                            2
                                            11))
-                      '(1 3 11 5 7 10))))
+                      '(1 3 11 5 7 10))
+               "Insert 11 at 2")
+      (rove:ok (equal (treap->list (insert ws-treap
+                                           3
+                                           11))
+                      '(1 3 5 11 7 10))
+               "Insert 11 at 3"))
     #+nil
     (rove:testing "remove"
       (rove:ok (equal (treap->list (remove ws-treap 2))
