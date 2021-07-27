@@ -222,14 +222,16 @@
                   26)
                "one is null"))
     (rove:testing "merge"
-      (rove:ok (list-equal (treap->list (merge ws-treap rs-treap))
-                           '(1 1 3 3 5 5 2 4 7 10))))
+      (rove:ok (equal (treap->list (merge ws-treap rs-treap))
+                      (concatenate 'list ws rs))))
+    ;; これ以下のテストが通ったり通らなかったりする...
     (rove:testing "split"
-      (rove:ok (equalp (mapcar #'treap->list
-                               (multiple-value-list
-                                (split ws-treap 2)))
-                       '((1 3)
-                         (5 7 10)))))
+      (rove:ok (every #'list-equal
+                      (mapcar #'treap->list
+                              (multiple-value-list
+                               (split ws-treap 2)))
+                      '((1 3)
+                        (5 7 10)))))
     (rove:testing "insert"
       (rove:ok (equal (treap->list (insert ws-treap
                                            2
