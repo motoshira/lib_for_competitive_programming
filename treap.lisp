@@ -156,7 +156,8 @@
 
 #+swank
 (defun list-equal (xs ys)
-  "順番に関係なく要素が同じならOK O(n)"
+  "順番に関係なく要素が同じならOK O(n)
+   要素はintegerであることを期待"
   (let ((counter (make-hash-table :test #'eql)))
     (dolist (x xs)
       (incf (gethash x counter 0)))
@@ -173,8 +174,8 @@
   (let* ((xs (loop repeat 5 collect (random 100)))
          (ys (loop repeat 10 collect (random 100)))
          (zs (loop repeat 20 collect (random 100)))
-         (ws (list 1 3 5 7 10)) ; sum = 26
-         (rs (list 1 5 4 3 2))  ; sum = 15
+         (ws (list 1 3 5 7 10))  ; sum = 26
+         (rs (list 1 5 4 3 2))   ; sum = 15
          (xs-treap (list->treap xs))
          (ys-treap (list->treap ys))
          (zs-treap (list->treap zs))
@@ -221,8 +222,8 @@
                   26)
                "one is null"))
     (rove:testing "merge"
-      (rove:ok (equal (treap->list (merge ws-treap rs-treap))
-                      (cl:merge 'list ws rs #'eql))))
+      (rove:ok (list-equal (treap->list (merge ws-treap rs-treap))
+                           '(1 1 3 3 5 5 2 4 7 10))))
     (rove:testing "split"
       (rove:ok (equalp (mapcar #'treap->list
                                (multiple-value-list
