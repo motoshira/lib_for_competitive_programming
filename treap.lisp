@@ -13,6 +13,7 @@
 
 (defpackage #:treap
   (:use #:cl)
+  (:nicknames #:tr)
   (:shadow #:merge
            #:remove
            #:ref)
