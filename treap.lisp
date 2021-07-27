@@ -157,7 +157,7 @@
 (defun ref (treap key)
   "treapのkeyに対応する値を返す。O(logN)"
   ;; TODO
-  ;; - 半変数 setf
+  ;; - 汎変数 setf
   (multiple-value-bind (_removed center)
       (remove treap key)
     (declare (ignore _removed))
