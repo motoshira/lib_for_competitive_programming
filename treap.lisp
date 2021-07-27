@@ -160,7 +160,8 @@
          (xs-treap (list->treap xs))
          (ys-treap (list->treap ys))
          (zs-treap (list->treap zs))
-         (ws-treap (list->treap ws)))
+         (ws-treap (list->treap ws))
+         (null-treap (list->treap nil)))
     (rove:testing "Testing equality"
       (flet ((convert (list)
                (treap->list (list->treap list))))
@@ -173,9 +174,14 @@
       (rove:ok (= (%get-sum ws-treap)
                   26)))
     (rove:testing "plus-cnt"
-      (rove:ok (= (%plus-cnt xs-treap
-                             ys-treap)
-                  15)))
+      (rove:testing "normal"
+        (rove:ok (= (%plus-cnt xs-treap
+                               ys-treap)
+                    15)))
+      (rove:testing "one is null"
+        (rove:ok (= (%plus-cnt xs-treap
+                               null-treap)
+                    5))))
     (rove:testing "split"
       (rove:ok (equalp (mapcar #'treap->list
                                (multiple-value-list
