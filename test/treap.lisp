@@ -85,6 +85,11 @@
                "Insert 11 at 3"))
     (rove:testing "remove"
       (rove:ok (equal (treap->list (remove ws-treap 2))
-                      '(1 3 7 10))))))
+                      '(1 3 7 10))))
+    (rove:testing "ref"
+      (rove:ok (= (ref ws-treap 2)
+                  5))
+      (rove:ok (= (ref ws-treap 3)
+                  7)))))
 
 #+swank (rove:run-suite *package*)

@@ -14,7 +14,8 @@
            #:merge
            #:split
            #:insert
-           #:remove))
+           #:remove
+           #:ref))
 
 (in-package  #:treap)
 
