@@ -53,24 +53,20 @@
             :initial-value nil)))
 
 (defun %get-cnt (treap)
-  ;; テスト済み
   (if (null treap)
       0
       (treap-cnt treap)))
 
 (defun %get-sum (treap)
-  ;; テスト済み
   (if (null treap)
       0
       (treap-sum treap)))
 
 (defun %plus-cnt (l r)
-  ;; テスト済み
   (+ (%get-cnt l)
      (%get-cnt r)))
 
 (defun %plus-sum (l r)
-  ;; テスト済み
   (+ (%get-sum l)
      (%get-sum r)))
 
@@ -100,9 +96,6 @@
 (defun split (treap key)
   "left:  k未満のnodeからなるtreap
    right: k以上のnodeからなるtreap"
-  ;; FIXME:
-  ;;   たまに壊れる
-  ;;   splitの位置がずれてる？
   (cond
     ((null treap) (values nil nil))
     ((>= (%get-cnt (treap-l treap)) key)
