@@ -1,5 +1,16 @@
 (in-package #:cl-user)
 
+;; Immutable Treap
+;; Reference:
+;;  「プログラミングコンテストでのデータ構造 2　～平衡二分探索木編～」
+;;    https://www.slideshare.net/iwiwi/2-12188757
+;;
+;; TODO:
+;;  - 型をつける
+;;  - verify
+;;  - range-sum
+;;  - range-op (RMQ, RUQ等に対応したい)
+
 (defpackage #:treap
   (:use #:cl)
   (:shadow #:merge
