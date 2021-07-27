@@ -1,4 +1,6 @@
-(in-package #:cl-user)
+;;;
+;;; BOF
+;;;
 
 ;; Immutable Treap
 ;; Reference:
@@ -165,3 +167,7 @@
          (treap-value center))))
 
 #+swank (load (merge-pathnames "test/treap.lisp" (uiop:current-lisp-file-pathname)) :if-does-not-exist nil)
+
+;;;
+;;; EOF
+;;;
