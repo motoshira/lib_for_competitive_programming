@@ -43,20 +43,24 @@
             :initial-value nil)))
 
 (defun %get-cnt (treap)
+  ;; テスト済み
   (if (null treap)
       0
       (treap-cnt treap)))
 
 (defun %get-sum (treap)
+  ;; テスト済み
   (if (null treap)
       0
       (treap-sum treap)))
 
 (defun %plus-cnt (l r)
+  ;; テスト済み
   (+ (%get-cnt l)
      (%get-cnt r)))
 
 (defun %plus-sum (l r)
+  ;; テスト済み
   (+ (%get-sum l)
      (%get-sum r)))
 
@@ -156,11 +160,13 @@
   (let* ((xs (loop repeat 5 collect (random 100)))
          (ys (loop repeat 10 collect (random 100)))
          (zs (loop repeat 20 collect (random 100)))
-         (ws (list 1 3 5 7 10))
+         (ws (list 1 3 5 7 10)) ; sum = 26
+         (rs (list 1 5 4 3 2))  ; sum = 15
          (xs-treap (list->treap xs))
          (ys-treap (list->treap ys))
          (zs-treap (list->treap zs))
          (ws-treap (list->treap ws))
+         (rs-treap (list->treap rs))
          (null-treap (list->treap nil)))
     (rove:testing "Testing equality"
       (flet ((convert (list)
@@ -169,19 +175,33 @@
                         xs))))
     (rove:testing "get-cnt"
       (rove:ok (= (%get-cnt ys-treap)
-                  10)))
+                  10)
+               "normal")
+      (rove:ok (= (%get-cnt null-treap)
+                  0)
+               "null-treap"))
     (rove:testing "get-sum"
       (rove:ok (= (%get-sum ws-treap)
-                  26)))
+                  26))
+      (rove:ok (= (%get-sum null-treap)
+                  0)
+               "null-treap"))
     (rove:testing "plus-cnt"
-      (rove:testing "normal"
-        (rove:ok (= (%plus-cnt xs-treap
-                               ys-treap)
-                    15)))
-      (rove:testing "one is null"
-        (rove:ok (= (%plus-cnt xs-treap
-                               null-treap)
-                    5))))
+      (rove:ok (= (%plus-cnt xs-treap
+                             ys-treap)
+                  15)
+               "normal")
+      (rove:ok (= (%plus-cnt xs-treap
+                             null-treap)
+                  5)
+               "one is null"))
+    (rove:testing "plus-sum"
+      (rove:ok (= (%plus-sum ws-treap rs-treap)
+                  41)
+               "normal")
+      (rove:ok (= (%plus-sum ws-treap null-treap)
+                  26)
+               "one is null"))
     (rove:testing "split"
       (rove:ok (equalp (mapcar #'treap->list
                                (multiple-value-list
