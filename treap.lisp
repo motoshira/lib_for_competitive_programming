@@ -101,12 +101,8 @@
          (split (treap-l treap)
                 key)
        (let* ((r (merge (make-treap (treap-value treap)
-                                    :sum (- (%get-sum treap)
-                                            (%get-sum (treap-l treap))
-                                            (treap-value treap))
-                                    :cnt (- (%get-cnt treap)
-                                            (%get-cnt (treap-l treap))
-                                            1))
+                                    :sum (treap-value treap)
+                                    :cnt 1)
                         (treap-r treap)))
               (res-r (merge new-r r)))
          (values new-l res-r))))
@@ -119,14 +115,9 @@
                   new-key)
          (let* ((l (merge (treap-l treap)
                           (make-treap (treap-value treap)
-                                      :sum (- (%get-sum treap)
-                                              (%get-sum (treap-r treap))
-                                              (treap-value treap))
-                                      :cnt (- (%get-cnt treap)
-                                              (%get-cnt (treap-r treap))
-                                              1))))
-                (res-l (merge l
-                              new-l)))
+                                      :sum (treap-value treap)
+                                      :cnt 1)))
+                (res-l (merge l new-l)))
            (values res-l new-r)))))))
 
 (defun insert (treap key value)
@@ -155,21 +146,6 @@
          (treap-value center))))
 
 #+swank
-(defun list-equal (xs ys)
-  "順番に関係なく要素が同じならOK O(n)
-   要素はintegerであることを期待"
-  (let ((counter (make-hash-table :test #'eql)))
-    (dolist (x xs)
-      (incf (gethash x counter 0)))
-    (dolist (y ys)
-      (let ((cnt (gethash y counter 0)))
-        (cond
-          ((zerop cnt) (return-from list-equal nil))
-          ((= 1 cnt) (remhash y counter))
-          (:else (decf (gethash y counter))))))
-    (zerop (hash-table-count counter))))
-
-#+swank
 (rove:deftest test-treap
   (let* ((xs (loop repeat 5 collect (random 100)))
          (ys (loop repeat 10 collect (random 100)))
@@ -182,11 +158,6 @@
          (ws-treap (list->treap ws))
          (rs-treap (list->treap rs))
          (null-treap (list->treap nil)))
-    (rove:testing "list-equal"
-      (rove:ok (list-equal '(5 1 4 2 3) rs))
-      (rove:ok (list-equal '(1 2 4 3 5) rs))
-      (rove:ok (not (list-equal '(1 1 5 4 3 2) rs)))
-      (rove:ok (not (list-equal '(1 4 3 2) rs))))
     (rove:testing "Testing equality"
       (flet ((convert (list)
                (treap->list (list->treap list))))
@@ -223,10 +194,11 @@
                "one is null"))
     (rove:testing "merge"
       (rove:ok (equal (treap->list (merge ws-treap rs-treap))
-                      (concatenate 'list ws rs))))
+                      (concatenate 'list ws rs))
+               "Merge two treap preserving order"))
     ;; これ以下のテストが通ったり通らなかったりする...
     (rove:testing "split"
-      (rove:ok (every #'list-equal
+      (rove:ok (every #'equal
                       (mapcar #'treap->list
                               (multiple-value-list
                                (split ws-treap 2)))
