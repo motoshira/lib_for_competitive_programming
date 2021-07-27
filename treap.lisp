@@ -166,4 +166,4 @@
     (and center
          (treap-value center))))
 
-#+swank (load (merge-pathnames "test/treap.lisp" (truename ".")))
+#+swank (load (merge-pathnames "test/treap.lisp" (truename ".")) :if-does-not-exist nil)
