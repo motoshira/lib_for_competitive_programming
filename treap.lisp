@@ -109,7 +109,8 @@
     (:else
      ;; 右
      (let ((new-key (- key
-                       (%get-cnt (treap-l treap)))))
+                       (%get-cnt (treap-l treap))
+                       1)))
        (multiple-value-bind (new-l new-r)
            (split (treap-r treap)
                   new-key)
