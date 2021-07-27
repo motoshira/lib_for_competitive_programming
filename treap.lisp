@@ -19,9 +19,6 @@
            #:ref)
   (:export #:list->treap
            #:treap->list
-           #:%get-cnt
-           #:%get-sum
-           #:%plus-cnt
            #:%plus-sum
            #:merge
            #:split
@@ -167,4 +164,4 @@
     (and center
          (treap-value center))))
 
-#+swank (load (merge-pathnames "test/treap.lisp" (truename ".")) :if-does-not-exist nil)
+#+swank (load (merge-pathnames "test/treap.lisp" (uiop:current-lisp-file-pathname)) :if-does-not-exist nil)

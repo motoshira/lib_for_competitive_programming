@@ -2,6 +2,7 @@
 
 (defpackage :test/treap
   (:use #:cl #:treap)
+  (:shadowing-import-from #:treap #:merge #:remove)
   (:import-from #:rove))
 
 (in-package :test/treap)
@@ -25,32 +26,32 @@
         (rove:ok (equal (convert xs)
                         xs))))
     (rove:testing "get-cnt"
-      (rove:ok (= (%get-cnt ys-treap)
+      (rove:ok (= (treap::%get-cnt ys-treap)
                   10)
                "normal")
-      (rove:ok (= (%get-cnt null-treap)
+      (rove:ok (= (treap::%get-cnt null-treap)
                   0)
                "null-treap"))
     (rove:testing "get-sum"
-      (rove:ok (= (%get-sum ws-treap)
+      (rove:ok (= (treap::%get-sum ws-treap)
                   26))
-      (rove:ok (= (%get-sum null-treap)
+      (rove:ok (= (treap::%get-sum null-treap)
                   0)
                "null-treap"))
     (rove:testing "plus-cnt"
-      (rove:ok (= (%plus-cnt xs-treap
-                             ys-treap)
+      (rove:ok (= (treap::%plus-cnt xs-treap
+                                    ys-treap)
                   15)
                "normal")
-      (rove:ok (= (%plus-cnt xs-treap
-                             null-treap)
+      (rove:ok (= (treap::%plus-cnt xs-treap
+                                    null-treap)
                   5)
                "one is null"))
     (rove:testing "plus-sum"
-      (rove:ok (= (%plus-sum ws-treap rs-treap)
+      (rove:ok (= (treap::%plus-sum ws-treap rs-treap)
                   41)
                "normal")
-      (rove:ok (= (%plus-sum ws-treap null-treap)
+      (rove:ok (= (treap::%plus-sum ws-treap null-treap)
                   26)
                "one is null"))
     (rove:testing "merge"
