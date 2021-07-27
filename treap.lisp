@@ -132,20 +132,16 @@
            (values res-l new-r)))))))
 
 (defun insert (treap key value)
-  ;; FIXME:
-  ;;   たまに壊れる
-  ;;   splitの位置がずれてる？
   (multiple-value-bind (l r)
       (split treap key)
     (merge (merge l (make-treap value :sum value))
            r)))
 
 (defun remove (treap key)
-  ;; FIXME: ky道がおかしい
   (multiple-value-bind (l c-r)
-      (split treap (1- key))
+      (split treap key)
     (multiple-value-bind (c r)
-        (split c-r key)
+        (split c-r 1)
       (let ((res (merge l r)))
         (values res c)))))
 

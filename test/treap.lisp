@@ -83,7 +83,6 @@
                                            11))
                       '(1 3 5 11 7 10))
                "Insert 11 at 3"))
-    #+nil
     (rove:testing "remove"
       (rove:ok (equal (treap->list (remove ws-treap 2))
                       '(1 3 7 10))))))
