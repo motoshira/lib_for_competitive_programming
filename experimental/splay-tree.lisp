@@ -18,10 +18,11 @@
 
 (defstruct node
   "splay-treeのnode"
-  (value 0 :type fixnum)
+  (key 0 :type fixnum)
   (ptr nil :type pointer)
-  (l :none :type (maybe pointer))
-  (r :none :type (maybe pointer)))
+  (parent nil :type (maybe pointer))
+  (left nil :type (maybe pointer))
+  (right nil :type (maybe pointer)))
 
 (declaim (ftype (function (pointer) (maybe node)) deref))
 (defun deref (pointer)
