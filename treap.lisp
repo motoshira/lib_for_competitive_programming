@@ -181,6 +181,11 @@
          (ws-treap (list->treap ws))
          (rs-treap (list->treap rs))
          (null-treap (list->treap nil)))
+    (rove:testing "list-equal"
+      (rove:ok (list-equal '(5 1 4 2 3) rs))
+      (rove:ok (list-equal '(1 2 4 3 5) rs))
+      (rove:ok (not (list-equal '(1 1 5 4 3 2) rs)))
+      (rove:ok (not (list-equal '(1 4 3 2) rs))))
     (rove:testing "Testing equality"
       (flet ((convert (list)
                (treap->list (list->treap list))))
