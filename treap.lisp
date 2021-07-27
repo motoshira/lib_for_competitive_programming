@@ -27,7 +27,7 @@
   (sum sum))
 
 (defun treap->list (treap)
-  "デバッグ用。O(n)"
+  "treapをlistに変換する。デバッグ用。O(n)"
   (let ((res nil))
     (labels ((%traverse (node)
                ;; 再帰的にpush
@@ -45,7 +45,7 @@
     (princ (treap->list obj) s)))
 
 (defun list->treap (list)
-  "デバッグ用。O(n)"
+  "listをtreapに変換する。デバッグ用。O(n)"
   (let ((xs (copy-seq list)))
     (reduce (lambda (treap x)
               (merge treap (make-treap x :sum x)))
@@ -71,6 +71,7 @@
      (%get-sum r)))
 
 (defun merge (l r)
+  "２つのtreapを順序を保ったままマージする。O(logN)"
   (when (or (null l)
             (null r))
     (return-from merge (or l r)))
@@ -94,7 +95,10 @@
                     :sum new-sum))))
 
 (defun split (treap key)
-  "left:  k未満のnodeからなるtreap
+  "treapを分割する。
+   返り値: (values left right)
+
+   left:  k未満のnodeからなるtreap
    right: k以上のnodeからなるtreap"
   (cond
     ((null treap) (values nil nil))
@@ -125,12 +129,14 @@
            (values res-l new-r)))))))
 
 (defun insert (treap key value)
+  "treapのkeyの位置にvalueを挿入する。O(logN)"
   (multiple-value-bind (l r)
       (split treap key)
     (merge (merge l (make-treap value :sum value))
            r)))
 
 (defun remove (treap key)
+  "treapのkeyの位置にあるvalueを削除する。O(logN)"
   (multiple-value-bind (l c-r)
       (split treap key)
     (multiple-value-bind (c r)
@@ -139,6 +145,9 @@
         (values res c)))))
 
 (defun ref (treap key)
+  "treapのkeyに対応する値を返す。O(logN)"
+  ;; TODO
+  ;; - 半変数 setf
   (multiple-value-bind (_removed center)
       (remove treap key)
     (declare (ignore _removed))
