@@ -154,6 +154,19 @@
     (and center
          (treap-value center))))
 
+#+swank
+(defun list-equal (xs ys)
+  "順番に関係なく要素が同じならOK O(n)"
+  (let ((counter (make-hash-table :test #'eql)))
+    (dolist (x xs)
+      (incf (gethash x counter 0)))
+    (dolist (y ys)
+      (let ((cnt (gethash y counter 0)))
+        (cond
+          ((zerop cnt) (return-from list-equal nil))
+          ((= 1 cnt) (remhash y counter))
+          (:else (decf (gethash y counter))))))
+    (zerop (hash-table-count counter))))
 
 #+swank
 (rove:deftest test-treap
@@ -202,6 +215,9 @@
       (rove:ok (= (%plus-sum ws-treap null-treap)
                   26)
                "one is null"))
+    (rove:testing "merge"
+      (rove:ok (equal (treap->list (merge ws-treap rs-treap))
+                      (cl:merge 'list ws rs #'eql))))
     (rove:testing "split"
       (rove:ok (equalp (mapcar #'treap->list
                                (multiple-value-list
