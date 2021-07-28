@@ -32,9 +32,7 @@
 
 (deftype uint () '(integer 0 #.most-positive-fixnum))
 
-;; 本当はdeftypeがいいがdefstructの定義でうまく動かないためdefmacroにするx
-
-(defmacro maybe (type) `(or null ,type))
+(deftype maybe (type) `(or null ,type))
 
 (defstruct (treap (:constructor make-treap (value &key (left nil) (right nil) (cnt 1) (sum value))))
   (value value :type fixnum)
@@ -57,6 +55,7 @@
       (%traverse treap)
       (reverse res))))
 
+#+swank
 (defmethod print-object ((obj treap)
                          s)
   (print-unreadable-object (obj s :type t :identity t)
@@ -71,23 +70,35 @@
             :initial-value nil)))
 
 (declaim (inline %get-cnt %get-sum %plus-cnt %plus-sum))
+(declaim (ftype (function ((maybe treap)) uint) %get-cnt))
 (defun %get-cnt (treap)
-  (if (null treap)
-      0
-      (treap-cnt treap)))
+  (declare ((maybe treap) treap))
+  (the uint
+       (if (null treap)
+           0
+           (treap-cnt treap))))
 
+(declaim (ftype (function ((maybe treap)) uint) %get-sum))
 (defun %get-sum (treap)
-  (if (null treap)
-      0
-      (treap-sum treap)))
+  (declare ((maybe treap) treap))
+  (the fixnum
+       (if (null treap)
+           0
+           (treap-sum treap))))
 
+(declaim (ftype (function ((maybe treap) (maybe treap)) uint) %plus-cnt))
 (defun %plus-cnt (l r)
-  (+ (%get-cnt l)
-     (%get-cnt r)))
+  (declare ((maybe treap) l r))
+  (the uint
+       (+ (%get-cnt l)
+          (%get-cnt r))))
 
+(declaim (ftype (function ((maybe treap) (maybe treap)) fixnum) %plus-sum))
 (defun %plus-sum (l r)
-  (+ (%get-sum l)
-     (%get-sum r)))
+  (declare ((maybe treap) l r))
+  (the fixnum
+       (+ (%get-sum l)
+          (%get-sum r))))
 
 (defun merge (l r)
   "２つのtreapを順序を保ったままマージする。O(logN)"
