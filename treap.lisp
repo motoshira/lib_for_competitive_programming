@@ -142,6 +142,7 @@
 
 (defun insert (treap key value)
   "treapのkeyの位置にvalueを挿入する。O(logN)"
+  ;; TODO assert index
   (multiple-value-bind (l r)
       (split treap key)
     (merge (merge l (make-treap value :sum value))
@@ -149,6 +150,7 @@
 
 (defun remove (treap key)
   "treapのkeyの位置にあるvalueを削除する。O(logN)"
+  ;; TODO assert index
   (multiple-value-bind (l c-r)
       (split treap key)
     (multiple-value-bind (c r)
@@ -173,6 +175,7 @@
 (defun remove-preserving-order (treap value)
   "valueが昇順ソートされた状態を保ったままvalueを持つkeyを削除する O(log(n))
    insert, removeと併用すると壊れるため注意"
+  ;; TODO valueが存在しないときにエラー
   (let ((pos (%find-pos treap value)))
     (remove treap pos)))
 
