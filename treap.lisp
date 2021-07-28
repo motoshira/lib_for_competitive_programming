@@ -21,7 +21,6 @@
            #:ref)
   (:export #:list->treap
            #:treap->list
-           #:%plus-sum
            #:merge
            #:split
            #:insert
