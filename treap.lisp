@@ -157,7 +157,7 @@
       (let ((res (merge l r)))
         (values res c)))))
 
-(defun %find-insert-pos (treap value &optional (acc 0))
+(defun %find-pos (treap value &optional (acc 0))
   (if (null treap)
       acc
       (with-slots (left right) treap
@@ -166,11 +166,12 @@
             (%find-insert-pos right value (+ acc (%get-cnt left) 1))))))
 
 (defun insert-preserving-order (treap value)
-  (let ((pos (%find-insert-pos treap value)))
+  (let ((pos (%find-pos treap value)))
     (insert treap pos value)))
 
 (defun remove-preserving-order (treap value)
-  nil)
+  (let ((pos (%find-pos treap value)))
+    (remove treap pos)))
 
 (defun ref (treap key)
   "treapのkeyに対応する値を返す。O(logN)"
