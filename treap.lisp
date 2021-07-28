@@ -140,9 +140,29 @@
                 (res-l (merge l new-l)))
            (values res-l new-r)))))))
 
+(define-condition invalid-treap-index-error (error)
+  ((index :reader index :initarg :index)
+   (begin :reader begin :initarg :begin)
+   (end :reader end :initarg :end))
+  (:report (lambda (condition stream)
+             (with-slots (index begin end) condition
+               (format stream "index must be (integer ~a ~a), not ~a." begin (1- end) index)))))
+
+(defun %check-index (treap index &key type)
+  #-swank (declare (ignore treap index))
+  #+swank
+  (let ((end (ecase type
+               (:insert (treap-cnt treap))
+               (:remove (1- (treap-cnt treap))))))
+    (unless (<= 0 index end)
+      (error 'invalid-treap-index-error :begin 0
+                                        :end end
+                                        :index index))))
+
 (defun insert (treap key value)
   "treapのkeyの位置にvalueを挿入する。O(logN)"
   ;; TODO assert index
+  (%check-index treap key :type :insert)
   (multiple-value-bind (l r)
       (split treap key)
     (merge (merge l (make-treap value :sum value))
@@ -151,6 +171,7 @@
 (defun remove (treap key)
   "treapのkeyの位置にあるvalueを削除する。O(logN)"
   ;; TODO assert index
+  (%check-index treap key :type :remove)
   (multiple-value-bind (l c-r)
       (split treap key)
     (multiple-value-bind (c r)
