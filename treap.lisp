@@ -166,10 +166,14 @@
             (%find-insert-pos right value (+ acc (%get-cnt left) 1))))))
 
 (defun insert-preserving-order (treap value)
+  "valueが昇順ソートされた状態を保ったままvalueを挿入する O(log(n))
+   insert, removeと併用すると壊れるため注意"
   (let ((pos (%find-pos treap value)))
     (insert treap pos value)))
 
 (defun remove-preserving-order (treap value)
+  "valueが昇順ソートされた状態を保ったままvalueを持つkeyを削除する O(log(n))
+   insert, removeと併用すると壊れるため注意"
   (let ((pos (%find-pos treap value)))
     (remove treap pos)))
 
