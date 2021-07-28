@@ -117,6 +117,10 @@
            'treap::invalid-treap-index-error)
        "insert, right of end")
       (rove:ok
+       (rove:signals (insert null-treap 1 10)
+           'treap::invalid-treap-index-error)
+       "insert, with null-treap ")
+      (rove:ok
        (rove:signals (remove ws-treap 5)
            'treap::invalid-treap-index-error)
        "remove, right of end"))))

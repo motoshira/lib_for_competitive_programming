@@ -152,8 +152,8 @@
   #-swank (declare (ignore treap index))
   #+swank
   (let ((end (ecase type
-               (:insert (treap-cnt treap))
-               (:remove (1- (treap-cnt treap))))))
+               (:insert (%get-cnt treap))
+               (:remove (1- (%get-cnt treap))))))
     (unless (<= 0 index end)
       (error 'invalid-treap-index-error :begin 0
                                         :end end
