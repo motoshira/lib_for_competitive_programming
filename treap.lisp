@@ -161,7 +161,6 @@
 
 (defun insert (treap key value)
   "treapのkeyの位置にvalueを挿入する。O(logN)"
-  ;; TODO assert index
   (%check-index treap key :type :insert)
   (multiple-value-bind (l r)
       (split treap key)
@@ -170,7 +169,6 @@
 
 (defun remove (treap key)
   "treapのkeyの位置にあるvalueを削除する。O(logN)"
-  ;; TODO assert index
   (%check-index treap key :type :remove)
   (multiple-value-bind (l c-r)
       (split treap key)

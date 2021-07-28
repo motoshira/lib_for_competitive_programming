@@ -110,6 +110,15 @@
     (rove:testing "index out of range"
       (rove:ok
        (rove:signals (insert ws-treap -1 10)
-           'treap::invalid-treap-index-error)))))
+           'treap::invalid-treap-index-error)
+       "insert, left of begin")
+      (rove:ok
+       (rove:signals (insert ws-treap 6 10)
+           'treap::invalid-treap-index-error)
+       "insert, right of end")
+      (rove:ok
+       (rove:signals (remove ws-treap 5)
+           'treap::invalid-treap-index-error)
+       "remove, right of end"))))
 
 #+swank (rove:run-suite *package*)
