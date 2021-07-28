@@ -11,12 +11,10 @@
 (rove:deftest test-treap
   (let* ((xs (loop repeat 5 collect (random 100)))
          (ys (loop repeat 10 collect (random 100)))
-         (zs (loop repeat 20 collect (random 100)))
          (ws (list 1 3 5 7 10))  ; sum = 26
          (rs (list 1 5 4 3 2))   ; sum = 15
          (xs-treap (list->treap xs))
          (ys-treap (list->treap ys))
-         (zs-treap (list->treap zs))
          (ws-treap (list->treap ws))
          (rs-treap (list->treap rs))
          (null-treap (list->treap nil)))
