@@ -17,8 +17,7 @@
   (:use #:cl)
   (:nicknames #:tr)
   (:shadow #:merge
-           #:remove
-           #:ref)
+           #:remove)
   (:export #:list->treap
            #:treap->list
            #:merge
