@@ -66,6 +66,7 @@
             xs
             :initial-value nil)))
 
+(declaim (inline %get-cnt %get-sum %plus-cnt %plus-sum))
 (defun %get-cnt (treap)
   (if (null treap)
       0
