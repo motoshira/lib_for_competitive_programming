@@ -157,7 +157,8 @@
         (values res c)))))
 
 (defun insert-preserving-order (treap value)
-  nil)
+  (let ((pos (%find-insert-pos treap value)))
+    (insert treap pos value)))
 
 (defun ref (treap key)
   "treapのkeyに対応する値を返す。O(logN)"
