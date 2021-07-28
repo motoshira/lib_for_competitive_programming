@@ -100,63 +100,79 @@
        (+ (%get-sum l)
           (%get-sum r))))
 
+(declaim (ftype (function ((maybe treap) (maybe treap)) (maybe treap)) merge))
 (defun merge (l r)
   "２つのtreapを順序を保ったままマージする。O(logN)"
+  (declare ((maybe treap) l r))
   (when (or (null l)
             (null r))
-    (return-from merge (or l r)))
-  (let ((new-cnt (%plus-cnt l r))
-        (new-sum (%plus-sum l r)))
-    (if (> (treap-priority l)
-           (treap-priority r))
-        ;; lが上
-        (make-treap (treap-value l)
-                    :left (treap-left l)
-                    :right (merge (treap-right l)
-                                  r)
-                    :cnt new-cnt
-                    :sum new-sum)
-        ;; rが上
-        (make-treap (treap-value r)
-                    :left (merge l
-                                 (treap-left r))
-                    :right (treap-right r)
-                    :cnt new-cnt
-                    :sum new-sum))))
+    (return-from merge (the (maybe treap)
+                            (or l r))))
+  (the (maybe treap)
+       (let ((new-cnt (%plus-cnt l r))
+             (new-sum (%plus-sum l r)))
+         (declare (uint new-cnt)
+                  (fixnum new-sum))
+         (if (> (treap-priority l)
+                (treap-priority r))
+             ;; lが上
+             (make-treap (treap-value l)
+                         :left (treap-left l)
+                         :right (merge (treap-right l)
+                                       r)
+                         :cnt new-cnt
+                         :sum new-sum)
+             ;; rが上
+             (make-treap (treap-value r)
+                         :left (merge l
+                                      (treap-left r))
+                         :right (treap-right r)
+                         :cnt new-cnt
+                         :sum new-sum)))))
 
+(declaim (ftype (function ((maybe treap) uint) (values (maybe treap) (maybe treap))) split))
 (defun split (treap key)
   "treapを分割する。
    返り値: (values left right)
 
    left:  k未満のnodeからなるtreap
    right: k以上のnodeからなるtreap"
-  (cond
-    ((null treap) (values nil nil))
-    ((>= (%get-cnt (treap-left treap)) key)
-     ;; cntが十分ある => 左
-     (multiple-value-bind (new-l new-r)
-         (split (treap-left treap)
-                key)
-       (let* ((r (merge (make-treap (treap-value treap)
-                                    :sum (treap-value treap)
-                                    :cnt 1)
-                        (treap-right treap)))
-              (res-r (merge new-r r)))
-         (values new-l res-r))))
-    (:else
-     ;; 右
-     (let ((new-key (- key
-                       (%get-cnt (treap-left treap))
-                       1)))
-       (multiple-value-bind (new-l new-r)
-           (split (treap-right treap)
-                  new-key)
-         (let* ((l (merge (treap-left treap)
-                          (make-treap (treap-value treap)
-                                      :sum (treap-value treap)
-                                      :cnt 1)))
-                (res-l (merge l new-l)))
-           (values res-l new-r)))))))
+  (declare ((maybe treap) treap)
+           (uint key))
+  (the (values (maybe treap)
+               (maybe treap))
+       (cond
+         ((null treap) (values nil nil))
+         ((>= (%get-cnt (treap-left treap)) key)
+          ;; cntが十分ある => 左
+          (multiple-value-bind (new-l new-r)
+              (split (treap-left treap)
+                     key)
+            (declare ((maybe treap) new-l new-r))
+            (let* ((r (merge (make-treap (treap-value treap)
+                                         :sum (treap-value treap)
+                                         :cnt 1)
+                             (treap-right treap)))
+                   (res-r (merge new-r r)))
+              (declare ((maybe treap) r res-r))
+              (values new-l res-r))))
+         (:else
+          ;; 右
+          (let ((new-key (- key
+                            (%get-cnt (treap-left treap))
+                            1)))
+            (declare (uint new-key))
+            (multiple-value-bind (new-l new-r)
+                (split (treap-right treap)
+                       new-key)
+              (declare ((maybe treap) new-l new-r))
+              (let* ((l (merge (treap-left treap)
+                               (make-treap (treap-value treap)
+                                           :sum (treap-value treap)
+                                           :cnt 1)))
+                     (res-l (merge l new-l)))
+                (declare ((maybe treap) l res-l))
+                (values res-l new-r))))))))
 
 (define-condition invalid-treap-index-error (error)
   ((index :reader index :initarg :index)
