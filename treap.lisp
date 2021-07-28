@@ -25,6 +25,7 @@
            #:split
            #:insert
            #:remove
+           #:insert-preserving-order
            #:ref))
 
 (in-package  #:treap)
@@ -154,6 +155,9 @@
         (split c-r 1)
       (let ((res (merge l r)))
         (values res c)))))
+
+(defun insert-preserving-order (treap value)
+  nil)
 
 (defun ref (treap key)
   "treapのkeyに対応する値を返す。O(logN)"
