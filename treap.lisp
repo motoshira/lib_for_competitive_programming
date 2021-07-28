@@ -174,6 +174,7 @@
                 (declare ((maybe treap) l res-l))
                 (values res-l new-r))))))))
 
+#+swank
 (define-condition invalid-treap-index-error (error)
   ((index :reader index :initarg :index)
    (begin :reader begin :initarg :begin)
