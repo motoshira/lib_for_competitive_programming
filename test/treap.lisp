@@ -109,10 +109,6 @@
                "0"))
     (rove:testing "index out of range"
       (rove:ok
-       (rove:signals (insert ws-treap -1 10)
-           'treap::invalid-treap-index-error)
-       "insert, left of begin")
-      (rove:ok
        (rove:signals (insert ws-treap 6 10)
            'treap::invalid-treap-index-error)
        "insert, right of end")

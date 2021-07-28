@@ -194,13 +194,19 @@
                                         :end end
                                         :index index))))
 
+(declaim (ftype (function ((maybe treap) uint fixnum) (maybe treap)) insert))
 (defun insert (treap key value)
   "treapのkeyの位置にvalueを挿入する。O(logN)"
+  (declare ((maybe treap) treap)
+           (uint key)
+           (fixnum value))
   (%check-index treap key :type :insert)
   (multiple-value-bind (l r)
       (split treap key)
-    (merge (merge l (make-treap value :sum value))
-           r)))
+    (declare ((maybe treap) l r))
+    (the (maybe treap)
+         (merge (merge l (make-treap value :sum value))
+                r))))
 
 (defun remove (treap key)
   "treapのkeyの位置にあるvalueを削除する。O(logN)"
