@@ -208,44 +208,65 @@
          (merge (merge l (make-treap value :sum value))
                 r))))
 
+(declaim (ftype (function ((maybe treap) uint) (values (maybe treap) (maybe treap))) remove))
 (defun remove (treap key)
   "treapのkeyの位置にあるvalueを削除する。O(logN)"
+  (declare ((maybe treap) treap)
+           (uint key))
   (%check-index treap key :type :remove)
   (multiple-value-bind (l c-r)
       (split treap key)
+    (declare ((maybe treap) l c-r))
     (multiple-value-bind (c r)
         (split c-r 1)
+      (declare ((maybe treap) c r))
       (let ((res (merge l r)))
+        (declare ((maybe treap) res))
         (values res c)))))
 
+(declaim (ftype (function ((maybe treap) fixnum &optional uint) uint) %find-pos))
 (defun %find-pos (treap value &optional (acc 0))
+  (declare ((maybe treap) treap)
+           (fixnum value)
+           (uint acc))
   (if (null treap)
       acc
       (with-slots (left right) treap
         (if (<= value (treap-value treap))
             (%find-pos left value acc)
-            (%find-pos right value (+ acc (%get-cnt left) 1))))))
+            (%find-pos right value (the uint (+ acc (%get-cnt left) 1)))))))
 
+(declaim (ftype (function ((maybe treap) fixnum) (maybe treap)) insert-preserving-order remove-preserving-order))
 (defun insert-preserving-order (treap value)
   "valueが昇順ソートされた状態を保ったままvalueを挿入する O(log(n))
    insert, removeと併用すると壊れるため注意"
+  (declare ((maybe treap) treap)
+           (fixnum value))
   (let ((pos (%find-pos treap value)))
+    (declare (uint pos))
     (insert treap pos value)))
 
 (defun remove-preserving-order (treap value)
   "valueが昇順ソートされた状態を保ったままvalueを持つkeyを削除する O(log(n))
    insert, removeと併用すると壊れるため注意"
   ;; TODO valueが存在しないときにエラー
+  (declare ((maybe treap) treap)
+           (fixnum value))
   (let ((pos (%find-pos treap value)))
+    (declare (uint pos))
     (remove treap pos)))
 
+(declaim (ftype (function ((maybe treap) uint) (maybe fixnum)) ref))
 (defun ref (treap key)
   "treapのkeyに対応する値を返す。O(logN)"
   ;; TODO
   ;; - 汎変数 setf
+  (declare ((maybe treap) treap)
+           (uint key))
   (multiple-value-bind (_removed center)
       (remove treap key)
-    (declare (ignore _removed))
+    (declare (ignore _removed)
+             ((maybe treap) center))
     (and center
          (treap-value center))))
 
