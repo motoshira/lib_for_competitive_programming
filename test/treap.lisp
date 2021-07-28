@@ -106,6 +106,10 @@
     (rove:testing "remove-preserving-order"
       (rove:ok (equal (treap->list (remove-preserving-order ws-treap 0))
                       '(3 5 7 10))
-               "0"))))
+               "0"))
+    (rove:testing "index out of range"
+      (rove:ok
+       (rove:signals (insert ws-treap -1 10)
+           'treap::invalid-treap-index-error)))))
 
 #+swank (rove:run-suite *package*)

@@ -184,8 +184,8 @@
       acc
       (with-slots (left right) treap
         (if (<= value (treap-value treap))
-            (%find-insert-pos left value acc)
-            (%find-insert-pos right value (+ acc (%get-cnt left) 1))))))
+            (%find-pos left value acc)
+            (%find-pos right value (+ acc (%get-cnt left) 1))))))
 
 (defun insert-preserving-order (treap value)
   "valueが昇順ソートされた状態を保ったままvalueを挿入する O(log(n))
