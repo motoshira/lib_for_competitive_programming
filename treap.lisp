@@ -29,10 +29,10 @@
 
 (in-package  #:treap)
 
-(defstruct (treap (:constructor make-treap (value &key (l nil) (r nil) (cnt 1) (sum value))))
+(defstruct (treap (:constructor make-treap (value &key (left nil) (right nil) (cnt 1) (sum value))))
   (value value)
-  (l nil :type (or null treap))
-  (r nil :type (or null treap))
+  (left nil :type (or null treap))
+  (right nil :type (or null treap))
   (priority (random #.most-positive-fixnum))  ;; 勝手に決まる
   (cnt cnt)
   (sum sum))
@@ -43,10 +43,10 @@
     (labels ((%traverse (node)
                ;; 再帰的にpush
                (when node
-                 (%traverse (treap-l node))
+                 (%traverse (treap-left node))
                  (push (treap-value node)
                        res)
-                 (%traverse (treap-r node)))))
+                 (%traverse (treap-right node)))))
       (%traverse treap)
       (reverse res))))
 
@@ -92,16 +92,16 @@
            (treap-priority r))
         ;; lが上
         (make-treap (treap-value l)
-                    :l (treap-l l)
-                    :r (merge (treap-r l)
-                              r)
+                    :left (treap-left l)
+                    :right (merge (treap-right l)
+                                  r)
                     :cnt new-cnt
                     :sum new-sum)
         ;; rが上
         (make-treap (treap-value r)
-                    :l (merge l
-                              (treap-l r))
-                    :r (treap-r r)
+                    :left (merge l
+                                 (treap-left r))
+                    :right (treap-right r)
                     :cnt new-cnt
                     :sum new-sum))))
 
@@ -113,26 +113,26 @@
    right: k以上のnodeからなるtreap"
   (cond
     ((null treap) (values nil nil))
-    ((>= (%get-cnt (treap-l treap)) key)
+    ((>= (%get-cnt (treap-left treap)) key)
      ;; cntが十分ある => 左
      (multiple-value-bind (new-l new-r)
-         (split (treap-l treap)
+         (split (treap-left treap)
                 key)
        (let* ((r (merge (make-treap (treap-value treap)
                                     :sum (treap-value treap)
                                     :cnt 1)
-                        (treap-r treap)))
+                        (treap-right treap)))
               (res-r (merge new-r r)))
          (values new-l res-r))))
     (:else
      ;; 右
      (let ((new-key (- key
-                       (%get-cnt (treap-l treap))
+                       (%get-cnt (treap-left treap))
                        1)))
        (multiple-value-bind (new-l new-r)
-           (split (treap-r treap)
+           (split (treap-right treap)
                   new-key)
-         (let* ((l (merge (treap-l treap)
+         (let* ((l (merge (treap-left treap)
                           (make-treap (treap-value treap)
                                       :sum (treap-value treap)
                                       :cnt 1)))
