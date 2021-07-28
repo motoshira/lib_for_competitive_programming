@@ -30,13 +30,15 @@
 
 (in-package  #:treap)
 
+(deftype uint () '(integer 0 #.most-positive-fixnum))
+
 (defstruct (treap (:constructor make-treap (value &key (left nil) (right nil) (cnt 1) (sum value))))
-  (value value)
+  (value value :type fixnum)
   (left nil :type (or null treap))
   (right nil :type (or null treap))
-  (priority (random #.most-positive-fixnum))  ;; 勝手に決まる
-  (cnt cnt)
-  (sum sum))
+  (priority (random #.most-positive-fixnum) :type uint)  ;; 勝手に決まる
+  (cnt cnt :type uint)
+  (sum sum :type uint))
 
 (defun treap->list (treap)
   "treapをlistに変換する。デバッグ用。O(n)"
