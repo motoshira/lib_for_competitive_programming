@@ -32,6 +32,10 @@
 
 (deftype uint () '(integer 0 #.most-positive-fixnum))
 
+;; 本当はdeftypeがいいがdefstructの定義でうまく動かないためdefmacroにするx
+
+(defmacro maybe (type) `(or null ,type))
+
 (defstruct (treap (:constructor make-treap (value &key (left nil) (right nil) (cnt 1) (sum value))))
   (value value :type fixnum)
   (left nil :type (or null treap))
