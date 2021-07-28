@@ -156,6 +156,14 @@
       (let ((res (merge l r)))
         (values res c)))))
 
+(defun %find-insert-pos (treap value &optional (acc 0))
+  (if (null treap)
+      acc
+      (with-slots (left right) treap
+        (if (<= value (treap-value treap))
+            (%find-insert-pos left value acc)
+            (%find-insert-pos right value (+ acc (%get-cnt left) 1))))))
+
 (defun insert-preserving-order (treap value)
   (let ((pos (%find-insert-pos treap value)))
     (insert treap pos value)))
