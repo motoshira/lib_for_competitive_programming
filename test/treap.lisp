@@ -104,6 +104,10 @@
                "2")
       (rove:ok (equal (treap->list (insert-preserving-order ws-treap 11))
                       '(1 3 5 7 10 11))
-               "11"))))
+               "11"))
+    (rove:testing "remove-preserving-order"
+      (rove:ok (equal (treap->list (remove-preserving-order ws-treap 0)
+                                   '(3 5 7 10)))
+               "0"))))
 
 #+swank (rove:run-suite *package*)
