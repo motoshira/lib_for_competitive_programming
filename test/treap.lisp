@@ -54,7 +54,7 @@
                "one is null"))
     (rove:testing "merge"
       (rove:ok (equal (treap->list (merge ws-treap rs-treap))
-                      (concatenate 'list ws rs))
+                      '(1 3 5 7 10 1 5 4 3 2))
                "Merge two treap preserving order"))
     (rove:testing "split"
       (rove:ok (every #'equal
@@ -100,9 +100,9 @@
       (rove:ok (equal (treap->list (insert-preserving-order ws-treap 2))
                       '(1 2 3 5 7 10))
                "2")
-      (rove:ok (equal (treap->list (insert-preserving-order ws-treap 11))
-                      '(1 3 5 7 10 11))
-               "11"))
+      (rove:ok (equal (treap->list (insert-preserving-order ws-treap 100))
+                      '(1 3 5 7 10 100))
+               "100"))
     (rove:testing "remove-preserving-order"
       (rove:ok (equal (treap->list (remove-preserving-order ws-treap 0))
                       '(3 5 7 10))
