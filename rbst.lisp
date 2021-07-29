@@ -2,7 +2,6 @@
 ;;; BOF
 ;;;
 
-;; Immutable Rbst
 ;; Reference:
 ;;  「プログラミングコンテストでのデータ構造 2　～平衡二分探索木編～」
 ;;    https://www.slideshare.net/iwiwi/2-12188757
@@ -30,6 +29,29 @@
 
 (in-package  #:rbst)
 
+;; xorshift
+
+(deftype uint32 () '(unsigned-byte 32))
+
+(defstruct (xor32 (:constructor build ()))
+  (seed #.(1+ (random (1- (ash 1 32)))) :type uint32))
+
+(declaim (ftype (function (xor32) uint32) next))
+(defun next (xor32)
+  (declare (optimize (speed 3) (safety 0))
+           (xor32 xor32))
+  (let ((y (xor32-seed xor32)))
+    (declare (uint32 y))
+    (setf y (logxor (the uint32 (ash y 13))))
+    (setf y (logxor (the uint32 (ash y -17))))
+    (setf y (logxor (the uint32 (ash y 5))))
+    (setf (xor32-seed xor32) y)))
+
+;; rbst
+
+(declaim (xor32 *xorshift*))
+(defvar *xorshift* (build))
+
 (deftype uint () '(integer 0 #.most-positive-fixnum))
 
 (deftype maybe (type) `(or null ,type))
@@ -38,7 +60,6 @@
   (value value :type fixnum)
   (left nil :type (or null rbst))
   (right nil :type (or null rbst))
-  (priority (random #.most-positive-fixnum) :type uint)  ;; 勝手に決まる
   (cnt cnt :type uint)
   (sum sum :type uint))
 
@@ -113,8 +134,9 @@
              (new-sum (%plus-sum l r)))
          (declare (uint new-cnt)
                   (fixnum new-sum))
-         (if (> (rbst-priority l)
-                (rbst-priority r))
+         (if (> (rem (next *xorshift*)
+                     new-cnt)
+                (%get-cnt l))
              ;; lが上
              (make-rbst (rbst-value l)
                          :left (rbst-left l)
