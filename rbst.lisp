@@ -42,9 +42,9 @@
            (xor32 xor32))
   (let ((y (xor32-seed xor32)))
     (declare (uint32 y))
-    (setf y (logxor (the uint32 (ash y 13))))
-    (setf y (logxor (the uint32 (ash y -17))))
-    (setf y (logxor (the uint32 (ash y 5))))
+    (setf y (logxor y (the uint32 (ash y 13))))
+    (setf y (logxor y (the uint32 (ash y -17))))
+    (setf y (logxor y (the uint32 (ash y 5))))
     (setf (xor32-seed xor32) y)))
 
 ;; rbst
