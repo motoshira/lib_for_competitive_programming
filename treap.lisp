@@ -23,10 +23,7 @@
            #:merge
            #:split
            #:insert
-           #:remove
-           #:insert-preserving-order
-           #:remove-preserving-order
-           #:ref))
+           #:remove))
 
 (in-package  #:treap)
 
@@ -34,8 +31,8 @@
 
 (deftype maybe (type) `(or null ,type))
 
-(defstruct (treap (:constructor make-treap (value &key (left nil) (right nil) (cnt 1) (sum value))))
-  (value value :type fixnum)
+(defstruct (treap (:constructor make-treap (key &key (left nil) (right nil) (cnt 1) (sum value))))
+  (key key :type fixnum)
   (left nil :type (or null treap))
   (right nil :type (or null treap))
   (priority (random #.most-positive-fixnum) :type uint)  ;; 勝手に決まる
@@ -49,7 +46,7 @@
                ;; 再帰的にpush
                (when node
                  (%traverse (treap-left node))
-                 (push (treap-value node)
+                 (push (treap-key node)
                        res)
                  (%traverse (treap-right node)))))
       (%traverse treap)
@@ -100,6 +97,14 @@
        (+ (%get-sum l)
           (%get-sum r))))
 
+(declaim (inline %propagate))
+(defun %propagate (treap)
+  ;; 子のcnt,sumが正しいことを前提とする
+  ;; つまり葉から根へ伝搬すればよい
+  (with-slots (left right) treap
+    (setf (treap-cnt treap) (%plus-cnt left right))
+    (setf (treap-sum treap) (%plus-sum left right))))
+
 (declaim (ftype (function ((maybe treap) (maybe treap)) (maybe treap)) merge))
 (defun merge (l r)
   "２つのtreapを順序を保ったままマージする。O(logN)"
@@ -108,27 +113,22 @@
             (null r))
     (return-from merge (the (maybe treap)
                             (or l r))))
-  (the (maybe treap)
-       (let ((new-cnt (%plus-cnt l r))
-             (new-sum (%plus-sum l r)))
-         (declare (uint new-cnt)
-                  (fixnum new-sum))
-         (if (> (treap-priority l)
-                (treap-priority r))
-             ;; lが上
-             (make-treap (treap-value l)
-                         :left (treap-left l)
-                         :right (merge (treap-right l)
-                                       r)
-                         :cnt new-cnt
-                         :sum new-sum)
-             ;; rが上
-             (make-treap (treap-value r)
-                         :left (merge l
-                                      (treap-left r))
-                         :right (treap-right r)
-                         :cnt new-cnt
-                         :sum new-sum)))))
+  (cond
+    ((> (treap-priority l)
+        (treap-priority r))
+     ;; lが上
+     (setf (treap-right l)
+           (merge (treap-right l)
+                  r))
+     (%propagate l)
+     l)
+    (:else
+     ;; rが上
+     (setf (treap-left r)
+           (merge l
+                  (treap-left r)))
+     (%propagate r)
+     r)))
 
 (declaim (ftype (function ((maybe treap) uint) (values (maybe treap) (maybe treap))) split))
 (defun split (treap key)
@@ -139,40 +139,32 @@
    right: k以上のnodeからなるtreap"
   (declare ((maybe treap) treap)
            (uint key))
+  (when (null treap)
+    (return-from split (values nil nil)))
+  (%propagate (treap-left treap))
+  (%propagate (treap-right treap))
   (the (values (maybe treap)
                (maybe treap))
        (cond
-         ((null treap) (values nil nil))
-         ((>= (%get-cnt (treap-left treap)) key)
-          ;; cntが十分ある => 左
+         ((>= (treap-key treap) key)
+          ;; keyが十分大きい => 左
+
           (multiple-value-bind (new-l new-r)
               (split (treap-left treap)
                      key)
             (declare ((maybe treap) new-l new-r))
-            (let* ((r (merge (make-treap (treap-value treap)
-                                         :sum (treap-value treap)
-                                         :cnt 1)
-                             (treap-right treap)))
-                   (res-r (merge new-r r)))
-              (declare ((maybe treap) r res-r))
-              (values new-l res-r))))
+            (setf (treap-left treap) new-r)
+            (%propagate treap)
+            (values new-l treap)))
          (:else
           ;; 右
-          (let ((new-key (- key
-                            (%get-cnt (treap-left treap))
-                            1)))
-            (declare (uint new-key))
-            (multiple-value-bind (new-l new-r)
-                (split (treap-right treap)
-                       new-key)
-              (declare ((maybe treap) new-l new-r))
-              (let* ((l (merge (treap-left treap)
-                               (make-treap (treap-value treap)
-                                           :sum (treap-value treap)
-                                           :cnt 1)))
-                     (res-l (merge l new-l)))
-                (declare ((maybe treap) l res-l))
-                (values res-l new-r))))))))
+          (multiple-value-bind (new-l new-r)
+              (split (treap-right treap)
+                     key)
+            (declare ((maybe treap) new-l new-r))
+            (setf (treap-right treap) new-l)
+            (%propagate treap)
+            (values treap new-r))))))
 
 #+swank
 (define-condition invalid-treap-index-error (error)
@@ -194,25 +186,23 @@
                                         :end end
                                         :index index))))
 
-(declaim (ftype (function ((maybe treap) uint fixnum) (maybe treap)) insert))
-(defun insert (treap key value)
-  "treapのkeyの位置にvalueを挿入する。O(logN)"
+(declaim (ftype (function ((maybe treap) fixnum) (maybe treap)) insert))
+(defun insert (treap key)
+  "keyを挿入する"
   (declare ((maybe treap) treap)
-           (uint key)
-           (fixnum value))
-  (%check-index treap key :type :insert)
+           (fixnum key))
   (multiple-value-bind (l r)
       (split treap key)
     (declare ((maybe treap) l r))
     (the (maybe treap)
-         (merge (merge l (make-treap value :sum value))
+         (merge (merge l (make-treap key))
                 r))))
 
-(declaim (ftype (function ((maybe treap) uint) (values (maybe treap) (maybe treap))) remove))
+(declaim (ftype (function ((maybe treap) fixnum) (values (maybe treap) (maybe treap))) remove))
 (defun remove (treap key)
-  "treapのkeyの位置にあるvalueを削除する。O(logN)"
+  "keyを削除する"
   (declare ((maybe treap) treap)
-           (uint key))
+           (fixnum key))
   (%check-index treap key :type :remove)
   (multiple-value-bind (l c-r)
       (split treap key)
@@ -224,51 +214,8 @@
         (declare ((maybe treap) res))
         (values res c)))))
 
-(declaim (ftype (function ((maybe treap) fixnum &optional uint) uint) %find-pos))
-(defun %find-pos (treap value &optional (acc 0))
-  (declare ((maybe treap) treap)
-           (fixnum value)
-           (uint acc))
-  (if (null treap)
-      acc
-      (with-slots (left right) treap
-        (if (<= value (treap-value treap))
-            (%find-pos left value acc)
-            (%find-pos right value (the uint (+ acc (%get-cnt left) 1)))))))
-
-(declaim (ftype (function ((maybe treap) fixnum) (maybe treap)) insert-preserving-order remove-preserving-order))
-(defun insert-preserving-order (treap value)
-  "valueが昇順ソートされた状態を保ったままvalueを挿入する O(log(n))
-   insert, removeと併用すると壊れるため注意"
-  (declare ((maybe treap) treap)
-           (fixnum value))
-  (let ((pos (%find-pos treap value)))
-    (declare (uint pos))
-    (insert treap pos value)))
-
-(defun remove-preserving-order (treap value)
-  "valueが昇順ソートされた状態を保ったままvalueを持つkeyを削除する O(log(n))
-   insert, removeと併用すると壊れるため注意"
-  ;; TODO valueが存在しないときにエラー
-  (declare ((maybe treap) treap)
-           (fixnum value))
-  (let ((pos (%find-pos treap value)))
-    (declare (uint pos))
-    (remove treap pos)))
-
-(declaim (ftype (function ((maybe treap) uint) (maybe fixnum)) ref))
-(defun ref (treap key)
-  "treapのkeyに対応する値を返す。O(logN)"
-  ;; TODO
-  ;; - 汎変数 setf
-  (declare ((maybe treap) treap)
-           (uint key))
-  (multiple-value-bind (_removed center)
-      (remove treap key)
-    (declare (ignore _removed)
-             ((maybe treap) center))
-    (and center
-         (treap-value center))))
+(define-modify-macro insert! (key) (lambda (treap key) (insert treap key)))
+(define-modify-macro remove! (key) (lambda (treap key) (remove treap key)))
 
 #+swank (load (merge-pathnames "test/treap.lisp" (uiop:current-lisp-file-pathname)) :if-does-not-exist nil)
 
