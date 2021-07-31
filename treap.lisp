@@ -101,7 +101,8 @@
   "２つのtreapを順序を保ったままマージする。O(log(size))"
   ;; mergeに渡すtreapはpropagated
   ;; mergeから返ってくるtreapはpropagated
-  (declare ((maybe treap) l r))
+  (declare ((maybe treap) l r)
+           (optimize (speed 3)))
   (when (or (null l)
             (null r))
     (return-from merge (the (maybe treap)
@@ -133,7 +134,8 @@
    O(log(size))"
   ;; splitに渡すtreapはpropagated
   ;; splitから返ってくるtreapはpropagated
-  (declare ((maybe treap) treap)
+  (declare (optimize (speed 3))
+           ((maybe treap) treap)
            (uint key))
   (when (null treap)
     (return-from split (values nil nil)))
@@ -229,7 +231,8 @@
 
 (declaim (ftype (function ((maybe treap) fixnum uint) uint) %find-pos))
 (defun %find-pos (treap value acc)
-  (declare ((maybe treap) treap)
+  (declare (optimize (speed 3))
+           ((maybe treap) treap)
            (fixnum value)
            (uint acc))
   (the uint
