@@ -61,6 +61,13 @@
            (xs-tr (list->treap xs)))
       (remove! xs-tr 0)
       (rove:ok (equal (treap->list xs-tr)
-                      '(4 3 7 9))))))
+                      '(4 3 7 9)))))
+  (rove:testing "insert-preserving-order"
+    (let* ((xs (list 1 4 3 7 9))
+           (xs-tr (list->treap xs)))
+      (rove:ok (equal (treap->list
+                       (insert-preserving-order
+                        xs-tr 0))
+                      '(0 1 4 3 7 9))))))
 
 #+swank (rove:run-suite *package*)

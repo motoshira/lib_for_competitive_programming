@@ -85,7 +85,7 @@
 
 (declaim (inline %propagate))
 (defun %propagate (treap)
-  ;; 子のcnt,sumが正しいことを前提とする
+  ;; 子のcntが正しいことを前提とする
   ;; つまり葉から根へ伝搬すればよい
   (when treap
     (with-slots (left right) treap
@@ -205,6 +205,7 @@
 
 (define-modify-macro insert! (key value) (lambda (treap key value) (insert treap key value)))
 (define-modify-macro remove! (key) (lambda (treap key) (remove treap key)))
+
 
 #+swank (load (merge-pathnames "test/treap.lisp" (uiop:current-lisp-file-pathname)) :if-does-not-exist nil)
 
