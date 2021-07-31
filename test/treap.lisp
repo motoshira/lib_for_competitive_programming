@@ -24,6 +24,13 @@
            (xs-tr (list->treap xs))
            (ys-tr (list->treap ys)))
       (rove:ok (equal (treap->list (merge ys-tr xs-tr))
-                      '(3 7 9 1 4 3))))))
+                      '(3 7 9 1 4 3)))))
+  (rove:testing "split"
+    (let* ((xs (list 1 4 3 7 9))
+           (xs-tr (list->treap xs)))
+      (rove:ok (equalp (mapcar #'treap->list
+                        (multiple-value-list
+                         (split xs-tr 2)))
+                       '((1 4) (3 7 9)))))))
 
 #+swank (rove:run-suite *package*)

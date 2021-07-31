@@ -101,13 +101,16 @@
 (defun %propagate (treap)
   ;; 子のcnt,sumが正しいことを前提とする
   ;; つまり葉から根へ伝搬すればよい
-  (with-slots (left right) treap
-    (setf (treap-cnt treap) (%plus-cnt left right))
-    (setf (treap-sum treap) (%plus-sum left right))))
+  (when treap
+    (with-slots (left right) treap
+      (setf (treap-cnt treap) (%plus-cnt left right))
+      (setf (treap-sum treap) (%plus-sum left right)))))
 
 (declaim (ftype (function ((maybe treap) (maybe treap)) (maybe treap)) merge))
 (defun merge (l r)
   "２つのtreapを順序を保ったままマージする。O(logN)"
+  ;; mergeに渡すtreapはpropagated
+  ;; mergeから返ってくるtreapはpropagated
   (declare ((maybe treap) l r))
   (when (or (null l)
             (null r))
@@ -137,12 +140,12 @@
 
    left:  k未満のnodeからなるtreap
    right: k以上のnodeからなるtreap"
+  ;; splitに渡すtreapはpropagated
+  ;; splitから返ってくるtreapはpropagated
   (declare ((maybe treap) treap)
            (uint key))
   (when (null treap)
     (return-from split (values nil nil)))
-  (%propagate (treap-left treap))
-  (%propagate (treap-right treap))
   (the (values (maybe treap)
                (maybe treap))
        (cond
