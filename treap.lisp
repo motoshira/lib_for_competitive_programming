@@ -8,8 +8,6 @@
 ;;    https://www.slideshare.net/iwiwi/2-12188757
 ;;
 ;; TODO:
-;;  - 型をつける
-;;  - verify
 ;;  - range-sum
 ;;  - range-op (RMQ, RUQ等に対応したい)
 
