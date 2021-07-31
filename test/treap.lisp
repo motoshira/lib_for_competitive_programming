@@ -7,9 +7,6 @@
 
 (in-package :test/treap)
 
-(defun make-fixture-from-list (list)
-  (list->treap ))
-
 #+swank
 (rove:deftest test-treap
   (rove:testing "merge"
@@ -29,14 +26,14 @@
     (let* ((xs (list 1 4 3 7 9))
            (xs-tr (list->treap xs)))
       (rove:ok (equalp (mapcar #'treap->list
-                        (multiple-value-list
-                         (split xs-tr 2)))
+                               (multiple-value-list
+                                (split xs-tr 2)))
                        '((1 4) (3 7 9)))))
     (let* ((xs (list 1 4 3 7 9))
            (xs-tr (list->treap xs)))
       (rove:ok (equalp (mapcar #'treap->list
-                        (multiple-value-list
-                         (split xs-tr 3)))
+                               (multiple-value-list
+                                (split xs-tr 3)))
                        '((1 4 3) (7 9))))))
   (rove:testing "insert"
     (let* ((xs (list 1 4 3 7 9))
@@ -55,7 +52,6 @@
       (rove:ok (equal (treap->list
                        (remove xs-tr 0))
                       '(4 3 7 9)))))
-
   (rove:testing "remove!"
     (let* ((xs (list 1 4 3 7 9))
            (xs-tr (list->treap xs)))
@@ -68,6 +64,13 @@
       (rove:ok (equal (treap->list
                        (insert-preserving-order
                         xs-tr 0))
-                      '(0 1 4 3 7 9))))))
+                      '(0 1 4 3 7 9))))
+    (let* ((xs (list 1 4 3 7 9))
+           (xs-tr (list->treap xs)))
+      (rove:ok (equal (treap->list
+                       (insert-preserving-order
+                        xs-tr 10))
+                      '(1 4 3 7 9 10))))))
+
 
 #+swank (rove:run-suite *package*)

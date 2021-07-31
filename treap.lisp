@@ -25,7 +25,9 @@
            #:insert
            #:remove
            #:insert!
-           #:remove!))
+           #:remove!
+           #:insert-preserving-order
+           #:remove-preserving-order))
 
 (in-package  #:treap)
 
@@ -206,24 +208,28 @@
 (define-modify-macro insert! (key value) (lambda (treap key value) (insert treap key value)))
 (define-modify-macro remove! (key) (lambda (treap key) (remove treap key)))
 
-(declaim (ftype (Function (treap fixnum uint) uint) %find-pos))
+(declaim (ftype (Function ((maybe treap) fixnum uint) uint) %find-pos))
 (defun %find-pos (treap value acc)
-  (check-type treap treap)
   (cond
-    ((= (treap-value treap) value)
+    ((or (null treap)
+         (= (treap-value treap) value))
      acc)
     ((> (treap-value treap) value)
      ;; 左
-     (%find-pos treap value acc))
+     (%find-pos (treap-left treap) value acc))
     (:else
      (let ((new-acc (+ acc
                        (%get-cnt (treap-left treap))
                        1)))
-       (%find-pos treap value new-acc)))))
+       (%find-pos (treap-right treap) value new-acc)))))
 
 (defun insert-preserving-order (treap value)
   (let ((key (%find-pos treap value 0)))
     (insert treap key value)))
+
+(defun remove-preserving-order (treap value)
+  (let ((key (%find-pos treap value 0)))
+    (remove treap key)))
 
 #+swank (load (merge-pathnames "test/treap.lisp" (uiop:current-lisp-file-pathname)) :if-does-not-exist nil)
 
