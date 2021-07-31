@@ -87,7 +87,7 @@
   ;; つまり葉から根へ伝搬すればよい
   (when treap
     (with-slots (left right) treap
-      (setf (treap-cnt treap) (%plus-cnt left right)))))
+      (setf (treap-cnt treap) (1+ (%plus-cnt left right))))))
 
 (declaim (ftype (function ((maybe treap) (maybe treap)) (maybe treap)) merge))
 (defun merge (l r)
@@ -117,7 +117,7 @@
      r)))
 
 (declaim (ftype (function ((maybe treap) uint) (values (maybe treap) (maybe treap))) split))
-(defun split (treap value)
+(defun split (treap key)
   "treapを分割する。
    返り値: (values left right)
 
@@ -126,18 +126,17 @@
   ;; splitに渡すtreapはpropagated
   ;; splitから返ってくるtreapはpropagated
   (declare ((maybe treap) treap)
-           (uint value))
+           (uint key))
   (when (null treap)
     (return-from split (values nil nil)))
   (the (values (maybe treap)
                (maybe treap))
        (cond
-         ((>= (treap-cnt treap) value)
+         ((>= (%get-cnt (treap-left treap)) key)
           ;; cntが十分大きい => 左
-
           (multiple-value-bind (new-l new-r)
               (split (treap-left treap)
-                     value)
+                     key)
             (declare ((maybe treap) new-l new-r))
             (setf (treap-left treap) new-r)
             (%propagate treap)
@@ -146,7 +145,9 @@
           ;; 右
           (multiple-value-bind (new-l new-r)
               (split (treap-right treap)
-                     value)
+                     (- key
+                        (%get-cnt (treap-left treap))
+                        1))
             (declare ((maybe treap) new-l new-r))
             (setf (treap-right treap) new-l)
             (%propagate treap)
@@ -173,12 +174,12 @@
                                         :index index))))
 
 (declaim (ftype (function ((maybe treap) fixnum) (maybe treap)) insert))
-(defun insert (treap value)
+(defun insert (treap key value)
   "valueを挿入する"
   (declare ((maybe treap) treap)
-           (fixnum value))
+           (fixnum key value))
   (multiple-value-bind (l r)
-      (split treap value)
+      (split treap key)
     (declare ((maybe treap) l r))
     (the (maybe treap)
          (merge (merge l (make-treap value))
