@@ -42,7 +42,18 @@
     (let* ((xs (list 1 4 3 7 9))
            (xs-tr (list->treap xs)))
       (rove:ok (equal (treap->list
-                       (insert xs-tr 2 10))
-                      '(1 4 10 3 7 9))))))
+                       (insert xs-tr 5 10))
+                      '(1 4 3 7 9 10))))
+    (let* ((xs (list 1 4 3 7 9))
+           (xs-tr (list->treap xs)))
+      (rove:ok (equal (treap->list
+                       (insert xs-tr 3 10))
+                      '(10 1 4 3 7 9)))))
+  (rove:testing "remove"
+    (let* ((xs (list 1 4 3 7 9))
+           (xs-tr (list->treap xs)))
+      (rove:ok (equal (treap->list
+                       (remove xs-tr 0))
+                      '(4 3 7 9))))))
 
 #+swank (rove:run-suite *package*)
