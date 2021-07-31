@@ -186,13 +186,13 @@
                 r))))
 
 (declaim (ftype (function ((maybe treap) fixnum) (values (maybe treap) (maybe treap))) remove))
-(defun remove (treap value)
-  "valueを削除する"
+(defun remove (treap key)
+  "keyを削除する"
   (declare ((maybe treap) treap)
-           (fixnum value))
-  (%check-index treap value :type :remove)
+           (uint key))
+  (%check-index treap key :type :remove)
   (multiple-value-bind (l c-r)
-      (split treap value)
+      (split treap key)
     (declare ((maybe treap) l c-r))
     (multiple-value-bind (c r)
         (split c-r 1)
@@ -201,8 +201,8 @@
         (declare ((maybe treap) res))
         (values res c)))))
 
-(define-modify-macro insert! (value) (lambda (treap value) (insert treap value)))
-(define-modify-macro remove! (value) (lambda (treap value) (remove treap value)))
+(define-modify-macro insert! (key value) (lambda (treap value) (insert treap key value)))
+(define-modify-macro remove! (value) (lambda (treap key) (remove treap key)))
 
 #+swank (load (merge-pathnames "test/treap.lisp" (uiop:current-lisp-file-pathname)) :if-does-not-exist nil)
 

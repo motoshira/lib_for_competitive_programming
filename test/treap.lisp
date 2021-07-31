@@ -31,6 +31,13 @@
       (rove:ok (equalp (mapcar #'treap->list
                         (multiple-value-list
                          (split xs-tr 2)))
-                       '((1 4) (3 7 9)))))))
+                       '((1 4) (3 7 9)))))
+    (let* ((xs (list 1 4 3 7 9))
+           (xs-tr (list->treap xs)))
+      (rove:ok (equalp (mapcar #'treap->list
+                        (multiple-value-list
+                         (split xs-tr 3)))
+                       '((1 4 3) (7 9))))))
+  (rove:testing "" nil))
 
 #+swank (rove:run-suite *package*)
