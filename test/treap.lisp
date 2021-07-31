@@ -12,10 +12,14 @@
   (rove:testing "merge"
     (let* ((xs (list 1 4 3))
            (ys (list 3 7 9))
+           (zs (list 3 7 9))
            (xs-tr (list->treap xs))
-           (ys-tr (list->treap ys)))
-      (rove:ok (equal (treap->list (merge xs-tr ys-tr))
-                      '(1 4 3 3 7 9))))
+           (ys-tr (list->treap ys))
+           (zs-tr (list->treap zs)))
+      (rove:ok (equal (treap->list (merge
+                                    (merge xs-tr ys-tr)
+                                    zs-tr))
+                      '(1 4 3 3 7 9 3 7 9))))
     (let* ((xs (list 1 4 3))
            (ys (list 3 7 9))
            (xs-tr (list->treap xs))
@@ -60,17 +64,22 @@
                       '(4 3 7 9)))
       (remove! xs-tr 3)
       (rove:ok (equal (treap->list xs-tr)
-                      '(4 3 7)))))
-  #+nil
+                      '(4 3 7)))
+      (remove! xs-tr 2)
+      (rove:ok (equal (treap->list xs-tr)
+                      '(4 3)))))
   (rove:testing "ref"
     (let* ((xs (list 1 4 3 7 9))
            (xs-tr (list->treap xs)))
       (rove:ok (= (ref xs-tr 0)
                   1))
+      (rove:ok (equal (treap->list xs-tr) xs))
       (rove:ok (= (ref xs-tr 2)
                   3))
+      (rove:ok (equal (treap->list xs-tr) xs))
       (rove:ok (= (ref xs-tr 1)
-                  4))))
+                  4))
+      (rove:ok (equal (treap->list xs-tr) xs))))
   (rove:testing "insert-preserving-order"
     (let* ((xs (list 1 3 4 7 9))
            (xs-tr (list->treap xs)))
@@ -84,7 +93,6 @@
                        (insert-preserving-order
                         xs-tr 10))
                       '(1 3 4 7 9 10)))))
-  #+nil
   (rove:testing "remove-preserving-order"
     (let* ((xs (list 1 3 4 7 9))
            (xs-tr (list->treap xs)))

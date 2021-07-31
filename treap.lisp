@@ -28,7 +28,9 @@
            #:remove!
            #:ref
            #:insert-preserving-order
-           #:remove-preserving-order))
+           #:remove-preserving-order
+           #:push!
+           #:pop!))
 
 (in-package  #:treap)
 
@@ -209,21 +211,28 @@
 (define-modify-macro insert! (key value) (lambda (treap key value) (insert treap key value)))
 (define-modify-macro remove! (key) (lambda (treap key) (remove treap key)))
 
-(defun ref (treap key)
-  (multiple-value-bind (removed c)
-      (remove treap key)
-    (declare ((maybe treap) removed c))
-    (prog1 (when c (treap-value c))
-      (setf treap (if c
-                      (insert removed key (treap-value c))
-                      removed)))))
+(defmacro ref (treap key)
+  ;; 壊れてる？？
+  (let ((removed (gensym "REMOVED"))
+        (c (gensym "C"))
+        (res (gensym "RES")))
+    `(multiple-value-bind (,removed ,c)
+         (remove ,treap ,key)
+       (declare ((maybe treap) ,removed ,c))
+       (let ((,res (when ,c (treap-value ,c))))
+         (prog1 ,res
+           ;; treapをもとに戻す
+           (setf ,treap (if ,c
+                            (insert ,removed ,key ,res)
+                            ,removed)))))))
 
 (declaim (ftype (Function ((maybe treap) fixnum uint) uint) %find-pos))
 (defun %find-pos (treap value acc)
   (cond
-    ((or (null treap)
-         (= (treap-value treap) value))
-     acc)
+    ((null treap) acc)
+    ((= (treap-value treap) value)
+     (+ acc
+        (%get-cnt (treap-left treap))))
     ((> (treap-value treap) value)
      ;; 左
      (%find-pos (treap-left treap) value acc))
@@ -240,6 +249,9 @@
 (defun remove-preserving-order (treap value)
   (let ((key (%find-pos treap value 0)))
     (remove treap key)))
+
+(define-modify-macro push! (value) #'insert-preserving-order)
+(define-modify-macro pop! (value) #'remove-preserving-order)
 
 #+swank (load (merge-pathnames "test/treap.lisp" (uiop:current-lisp-file-pathname)) :if-does-not-exist nil)
 
