@@ -38,6 +38,11 @@
                         (multiple-value-list
                          (split xs-tr 3)))
                        '((1 4 3) (7 9))))))
-  (rove:testing "" nil))
+  (rove:testing "insert"
+    (let* ((xs (list 1 4 3 7 9))
+           (xs-tr (list->treap xs)))
+      (rove:ok (equal (treap->list
+                       (insert xs-tr 2 10))
+                      '(1 4 10 3 7 9))))))
 
 #+swank (rove:run-suite *package*)
