@@ -256,8 +256,10 @@
     (declare (uint key))
     (remove treap key)))
 
-(define-modify-macro add-value! (value) #'insert-preserving-order)
-(define-modify-macro remove-value! (value) #'remove-preserving-order)
+(define-modify-macro insert-value! (value)
+  (lambda (treap value) (insert-preserving-order treap value)))
+(define-modify-macro remove-value! (value)
+  (lambda (treap value) (remove-preserving-order treap value)))
 
 #+swank (load (merge-pathnames "test/treap.lisp" (uiop:current-lisp-file-pathname)) :if-does-not-exist nil)
 

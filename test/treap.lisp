@@ -103,7 +103,31 @@
       (setf xs-tr (remove-preserving-order
                    xs-tr 4))
       (rove:ok (equal (treap->list xs-tr)
-                      '(3 7 9))))))
+                      '(3 7 9)))))
+  (rove:testing "insert-value!"
+    (let* ((xs (list 1 3 4 7 9))
+           (xs-tr (list->treap xs)))
+      (insert-value! xs-tr 0)
+      (rove:ok (equal (treap->list xs-tr)
+                      '(0 1 3 4 7 9)))
+      (insert-value! xs-tr 9)
+      (rove:ok (equal (treap->list xs-tr)
+                      '(0 1 3 4 7 9 9)))
+      (insert-value! xs-tr 5)
+      (rove:ok (equal (treap->list xs-tr)
+                      '(0 1 3 4 5 7 9 9)))))
+  (rove:testing "remove-value!"
+    (let* ((xs (list 1 3 4 7 9))
+           (xs-tr (list->treap xs)))
+      (remove-value! xs-tr 1)
+      (rove:ok (equal (treap->list xs-tr)
+                      '(3 4 7 9)))
+      (remove-value! xs-tr 4)
+      (rove:ok (equal (treap->list xs-tr)
+                      '(3 7 9)))
+      (remove-value! xs-tr 9)
+      (rove:ok (equal (treap->list xs-tr)
+                      '(3 7))))))
 
 
 #+swank (rove:run-suite *package*)
