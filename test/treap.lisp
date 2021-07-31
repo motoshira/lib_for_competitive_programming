@@ -47,7 +47,7 @@
     (let* ((xs (list 1 4 3 7 9))
            (xs-tr (list->treap xs)))
       (rove:ok (equal (treap->list
-                       (insert xs-tr 3 10))
+                       (insert xs-tr 0 10))
                       '(10 1 4 3 7 9)))))
   (rove:testing "remove"
     (let* ((xs (list 1 4 3 7 9))
