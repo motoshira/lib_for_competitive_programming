@@ -175,7 +175,7 @@
                                         :end end
                                         :index index))))
 
-(declaim (ftype (function ((maybe treap) fixnum) (maybe treap)) insert))
+(declaim (ftype (function ((maybe treap) uint fixnum) (maybe treap)) insert))
 (defun insert (treap key value)
   "valueを挿入する"
   (declare ((maybe treap) treap)
@@ -206,6 +206,9 @@
 (define-modify-macro insert! (key value) (lambda (treap key value) (insert treap key value)))
 (define-modify-macro remove! (key) (lambda (treap key) (remove treap key)))
 
+(defun insert-preserving-order (treap value)
+  (let ((key (%find-pos treap value 0)))
+    (insert treap key value)))
 
 #+swank (load (merge-pathnames "test/treap.lisp" (uiop:current-lisp-file-pathname)) :if-does-not-exist nil)
 
