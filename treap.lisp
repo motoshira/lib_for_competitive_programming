@@ -31,13 +31,12 @@
 
 (deftype maybe (type) `(or null ,type))
 
-(defstruct (treap (:constructor make-treap (key &key (left nil) (right nil) (cnt 1) (sum value))))
-  (key key :type fixnum)
+(defstruct (treap (:constructor make-treap (key &key (left nil) (right nil) (cnt 1))))
   (left nil :type (or null treap))
   (right nil :type (or null treap))
+  (key key :type fixnum)
   (priority (random #.most-positive-fixnum) :type uint)  ;; 勝手に決まる
-  (cnt cnt :type uint)
-  (sum sum :type uint))
+  (cnt cnt :type uint))
 
 (defun treap->list (treap)
   "treapをlistに変換する。デバッグ用。O(n)"
@@ -62,11 +61,11 @@
   "listをtreapに変換する。デバッグ用。O(n)"
   (let ((xs (copy-seq list)))
     (reduce (lambda (treap x)
-              (merge treap (make-treap x :sum x)))
+              (merge treap (make-treap x)))
             xs
             :initial-value nil)))
 
-(declaim (inline %get-cnt %get-sum %plus-cnt %plus-sum))
+(declaim (inline %get-cnt %plus-cnt))
 (declaim (ftype (function ((maybe treap)) uint) %get-cnt))
 (defun %get-cnt (treap)
   (declare ((maybe treap) treap))
@@ -75,14 +74,6 @@
            0
            (treap-cnt treap))))
 
-(declaim (ftype (function ((maybe treap)) uint) %get-sum))
-(defun %get-sum (treap)
-  (declare ((maybe treap) treap))
-  (the fixnum
-       (if (null treap)
-           0
-           (treap-sum treap))))
-
 (declaim (ftype (function ((maybe treap) (maybe treap)) uint) %plus-cnt))
 (defun %plus-cnt (l r)
   (declare ((maybe treap) l r))
@@ -90,21 +81,13 @@
        (+ (%get-cnt l)
           (%get-cnt r))))
 
-(declaim (ftype (function ((maybe treap) (maybe treap)) fixnum) %plus-sum))
-(defun %plus-sum (l r)
-  (declare ((maybe treap) l r))
-  (the fixnum
-       (+ (%get-sum l)
-          (%get-sum r))))
-
 (declaim (inline %propagate))
 (defun %propagate (treap)
   ;; 子のcnt,sumが正しいことを前提とする
   ;; つまり葉から根へ伝搬すればよい
   (when treap
     (with-slots (left right) treap
-      (setf (treap-cnt treap) (%plus-cnt left right))
-      (setf (treap-sum treap) (%plus-sum left right)))))
+      (setf (treap-cnt treap) (%plus-cnt left right)))))
 
 (declaim (ftype (function ((maybe treap) (maybe treap)) (maybe treap)) merge))
 (defun merge (l r)
