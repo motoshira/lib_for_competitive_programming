@@ -27,8 +27,8 @@
            #:insert!
            #:remove!
            #:ref
-           #:insert-preserving-order
-           #:remove-preserving-order
+           #:insert-value
+           #:remove-value
            #:insert-value!
            #:remove-value!))
 
@@ -247,25 +247,25 @@
                             1)))
             (%find-pos (treap-right treap) value new-acc))))))
 
-(declaim (ftype (function ((maybe treap) fixnum) (maybe treap)) insert-preserving-order remove-preserving-order))
-(defun insert-preserving-order (treap value)
-  "treapをmultisetとみなして値を追加する。insert/removeと併用不可。O(log(size))"
+(declaim (ftype (function ((maybe treap) fixnum) (maybe treap)) insert-value remove-value))
+(defun insert-value (treap value)
+  "treapをmultisetとみなして値を追加する。insert/remove等と併用不可。O(log(size))"
   (let ((key (%find-pos treap value 0)))
     (declare (uint key))
     (insert treap key value)))
 
-(defun remove-preserving-order (treap value)
-  "treapをmultisetとみなして値を削除する。insert/remove/insert!/remove!と併用不可。O(log(size))"
+(defun remove-value (treap value)
+  "treapをmultisetとみなして値を削除する。insert/remove等と併用不可。O(log(size))"
   (let ((key (%find-pos treap value 0)))
     (declare (uint key))
     (remove treap key)))
 
 (define-modify-macro insert-value! (value)
-  (lambda (treap value) (insert-preserving-order treap value))
-  "treapをmultisetとみなして値を追加する。insert/removeと併用不可。O(log(size))")
+  (lambda (treap value) (insert-value treap value))
+  "treapをmultisetとみなして値を追加する。insert/remove等と併用不可。O(log(size))")
 (define-modify-macro remove-value! (value)
-  (lambda (treap value) (remove-preserving-order treap value))
-  "treapをmultisetとみなして値を削除する。insert/remove/insert!/remove!と併用不可。O(log(size))")
+  (lambda (treap value) (remove-value treap value))
+  "treapをmultisetとみなして値を削除する。insert/remove等と併用不可。O(log(size))")
 
 #+swank (load (merge-pathnames "test/treap.lisp" (uiop:current-lisp-file-pathname)) :if-does-not-exist nil)
 
