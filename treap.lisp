@@ -29,8 +29,8 @@
            #:ref
            #:insert-preserving-order
            #:remove-preserving-order
-           #:push!
-           #:pop!))
+           #:insert-value!
+           #:remove-value!))
 
 (in-package  #:treap)
 
