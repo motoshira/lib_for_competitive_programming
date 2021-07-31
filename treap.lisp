@@ -98,7 +98,7 @@
 
 (declaim (ftype (function ((maybe treap) (maybe treap)) (maybe treap)) merge))
 (defun merge (l r)
-  "２つのtreapを順序を保ったままマージする。O(logN)"
+  "２つのtreapを順序を保ったままマージする。O(log(size))"
   ;; mergeに渡すtreapはpropagated
   ;; mergeから返ってくるtreapはpropagated
   (declare ((maybe treap) l r))
@@ -129,7 +129,8 @@
    返り値: (values left right)
 
    left:  k未満のnodeからなるtreap
-   right: k以上のnodeからなるtreap"
+   right: k以上のnodeからなるtreap
+   O(log(size))"
   ;; splitに渡すtreapはpropagated
   ;; splitから返ってくるtreapはpropagated
   (declare ((maybe treap) treap)
@@ -182,7 +183,7 @@
 
 (declaim (ftype (function ((maybe treap) uint fixnum) (maybe treap)) insert))
 (defun insert (treap key value)
-  "valueを挿入する"
+  "keyの位置にvalueを挿入する。O(log(size))"
   (declare ((maybe treap) treap)
            (fixnum key value))
   (multiple-value-bind (l r)
@@ -194,7 +195,7 @@
 
 (declaim (ftype (function ((maybe treap) fixnum) (values (maybe treap) (maybe treap))) remove))
 (defun remove (treap key)
-  "keyを削除する"
+  "keyを削除する。O(log(size))"
   (declare ((maybe treap) treap)
            (uint key))
   (%check-index treap key :type :remove)
@@ -208,10 +209,11 @@
         (declare ((maybe treap) res))
         (values res c)))))
 
-(define-modify-macro insert! (key value) (lambda (treap key value) (insert treap key value)))
-(define-modify-macro remove! (key) (lambda (treap key) (remove treap key)))
+(define-modify-macro insert! (key value) (lambda (treap key value) (insert treap key value)) "keyの位置にvalueを挿入する。O(log(size))")
+(define-modify-macro remove! (key) (lambda (treap key) (remove treap key)) "keyを削除する。O(log(size))")
 
 (defmacro ref (treap key)
+  "keyの値を返す。O(log(size))"
   (let ((removed (gensym "REMOVED"))
         (c (gensym "C"))
         (res (gensym "RES")))
@@ -247,19 +249,23 @@
 
 (declaim (ftype (function ((maybe treap) fixnum) (maybe treap)) insert-preserving-order remove-preserving-order))
 (defun insert-preserving-order (treap value)
+  "treapをmultisetとみなして値を追加する。insert/removeと併用不可。O(log(size))"
   (let ((key (%find-pos treap value 0)))
     (declare (uint key))
     (insert treap key value)))
 
 (defun remove-preserving-order (treap value)
+  "treapをmultisetとみなして値を削除する。insert/remove/insert!/remove!と併用不可。O(log(size))"
   (let ((key (%find-pos treap value 0)))
     (declare (uint key))
     (remove treap key)))
 
 (define-modify-macro insert-value! (value)
-  (lambda (treap value) (insert-preserving-order treap value)))
+  (lambda (treap value) (insert-preserving-order treap value))
+  "treapをmultisetとみなして値を追加する。insert/removeと併用不可。O(log(size))")
 (define-modify-macro remove-value! (value)
-  (lambda (treap value) (remove-preserving-order treap value)))
+  (lambda (treap value) (remove-preserving-order treap value))
+  "treapをmultisetとみなして値を削除する。insert/remove/insert!/remove!と併用不可。O(log(size))")
 
 #+swank (load (merge-pathnames "test/treap.lisp" (uiop:current-lisp-file-pathname)) :if-does-not-exist nil)
 
