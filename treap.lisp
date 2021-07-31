@@ -31,10 +31,10 @@
 
 (deftype maybe (type) `(or null ,type))
 
-(defstruct (treap (:constructor make-treap (key &key (left nil) (right nil) (cnt 1))))
+(defstruct (treap (:constructor make-treap (value &key (left nil) (right nil) (cnt 1))))
   (left nil :type (or null treap))
   (right nil :type (or null treap))
-  (key key :type fixnum)
+  (value value :type fixnum)
   (priority (random #.most-positive-fixnum) :type uint)  ;; 勝手に決まる
   (cnt cnt :type uint))
 
@@ -45,7 +45,7 @@
                ;; 再帰的にpush
                (when node
                  (%traverse (treap-left node))
-                 (push (treap-key node)
+                 (push (treap-value node)
                        res)
                  (%traverse (treap-right node)))))
       (%traverse treap)
@@ -117,7 +117,7 @@
      r)))
 
 (declaim (ftype (function ((maybe treap) uint) (values (maybe treap) (maybe treap))) split))
-(defun split (treap key)
+(defun split (treap value)
   "treapを分割する。
    返り値: (values left right)
 
@@ -126,18 +126,18 @@
   ;; splitに渡すtreapはpropagated
   ;; splitから返ってくるtreapはpropagated
   (declare ((maybe treap) treap)
-           (uint key))
+           (uint value))
   (when (null treap)
     (return-from split (values nil nil)))
   (the (values (maybe treap)
                (maybe treap))
        (cond
-         ((>= (treap-cnt treap) key)
+         ((>= (treap-cnt treap) value)
           ;; cntが十分大きい => 左
 
           (multiple-value-bind (new-l new-r)
               (split (treap-left treap)
-                     key)
+                     value)
             (declare ((maybe treap) new-l new-r))
             (setf (treap-left treap) new-r)
             (%propagate treap)
@@ -146,7 +146,7 @@
           ;; 右
           (multiple-value-bind (new-l new-r)
               (split (treap-right treap)
-                     key)
+                     value)
             (declare ((maybe treap) new-l new-r))
             (setf (treap-right treap) new-l)
             (%propagate treap)
@@ -173,25 +173,25 @@
                                         :index index))))
 
 (declaim (ftype (function ((maybe treap) fixnum) (maybe treap)) insert))
-(defun insert (treap key)
-  "keyを挿入する"
+(defun insert (treap value)
+  "valueを挿入する"
   (declare ((maybe treap) treap)
-           (fixnum key))
+           (fixnum value))
   (multiple-value-bind (l r)
-      (split treap key)
+      (split treap value)
     (declare ((maybe treap) l r))
     (the (maybe treap)
-         (merge (merge l (make-treap key))
+         (merge (merge l (make-treap value))
                 r))))
 
 (declaim (ftype (function ((maybe treap) fixnum) (values (maybe treap) (maybe treap))) remove))
-(defun remove (treap key)
-  "keyを削除する"
+(defun remove (treap value)
+  "valueを削除する"
   (declare ((maybe treap) treap)
-           (fixnum key))
-  (%check-index treap key :type :remove)
+           (fixnum value))
+  (%check-index treap value :type :remove)
   (multiple-value-bind (l c-r)
-      (split treap key)
+      (split treap value)
     (declare ((maybe treap) l c-r))
     (multiple-value-bind (c r)
         (split c-r 1)
@@ -200,8 +200,8 @@
         (declare ((maybe treap) res))
         (values res c)))))
 
-(define-modify-macro insert! (key) (lambda (treap key) (insert treap key)))
-(define-modify-macro remove! (key) (lambda (treap key) (remove treap key)))
+(define-modify-macro insert! (value) (lambda (treap value) (insert treap value)))
+(define-modify-macro remove! (value) (lambda (treap value) (remove treap value)))
 
 #+swank (load (merge-pathnames "test/treap.lisp" (uiop:current-lisp-file-pathname)) :if-does-not-exist nil)
 
