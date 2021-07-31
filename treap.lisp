@@ -173,7 +173,7 @@
                (format stream "index must be (integer ~a ~a), not ~a." begin (1- end) index)))))
 
 (defun %check-index (treap index &key type)
-  #-swank (declare (ignore treap index))
+  #-swank (declare (ignore treap index type))
   #+swank
   (let ((end (ecase type
                (:insert (%get-cnt treap))
