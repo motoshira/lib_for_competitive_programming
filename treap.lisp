@@ -206,6 +206,21 @@
 (define-modify-macro insert! (key value) (lambda (treap key value) (insert treap key value)))
 (define-modify-macro remove! (key) (lambda (treap key) (remove treap key)))
 
+(declaim (ftype (Function (treap fixnum uint) uint) %find-pos))
+(defun %find-pos (treap value acc)
+  (check-type treap treap)
+  (cond
+    ((= (treap-value treap) value)
+     acc)
+    ((> (treap-value treap) value)
+     ;; 左
+     (%find-pos treap value acc))
+    (:else
+     (let ((new-acc (+ acc
+                       (%get-cnt (treap-left treap))
+                       1)))
+       (%find-pos treap value new-acc)))))
+
 (defun insert-preserving-order (treap value)
   (let ((key (%find-pos treap value 0)))
     (insert treap key value)))
