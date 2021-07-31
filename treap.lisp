@@ -2,7 +2,7 @@
 ;;; BOF
 ;;;
 
-;; Immutable Treap
+;; Treap
 ;; Reference:
 ;;  「プログラミングコンテストでのデータ構造 2　～平衡二分探索木編～」
 ;;    https://www.slideshare.net/iwiwi/2-12188757
