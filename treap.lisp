@@ -132,8 +132,8 @@
   (the (values (maybe treap)
                (maybe treap))
        (cond
-         ((>= (treap-key treap) key)
-          ;; keyが十分大きい => 左
+         ((>= (treap-cnt treap) key)
+          ;; cntが十分大きい => 左
 
           (multiple-value-bind (new-l new-r)
               (split (treap-left treap)
