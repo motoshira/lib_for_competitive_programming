@@ -23,7 +23,9 @@
            #:merge
            #:split
            #:insert
-           #:remove))
+           #:remove
+           #:insert!
+           #:remove!))
 
 (in-package  #:treap)
 
@@ -201,8 +203,8 @@
         (declare ((maybe treap) res))
         (values res c)))))
 
-(define-modify-macro insert! (key value) (lambda (treap value) (insert treap key value)))
-(define-modify-macro remove! (value) (lambda (treap key) (remove treap key)))
+(define-modify-macro insert! (key value) (lambda (treap key value) (insert treap key value)))
+(define-modify-macro remove! (key) (lambda (treap key) (remove treap key)))
 
 #+swank (load (merge-pathnames "test/treap.lisp" (uiop:current-lisp-file-pathname)) :if-does-not-exist nil)
 
