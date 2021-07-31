@@ -57,20 +57,45 @@
            (xs-tr (list->treap xs)))
       (remove! xs-tr 0)
       (rove:ok (equal (treap->list xs-tr)
-                      '(4 3 7 9)))))
-  (rove:testing "insert-preserving-order"
+                      '(4 3 7 9)))
+      (remove! xs-tr 3)
+      (rove:ok (equal (treap->list xs-tr)
+                      '(4 3 7)))))
+  #+nil
+  (rove:testing "ref"
     (let* ((xs (list 1 4 3 7 9))
+           (xs-tr (list->treap xs)))
+      (rove:ok (= (ref xs-tr 0)
+                  1))
+      (rove:ok (= (ref xs-tr 2)
+                  3))
+      (rove:ok (= (ref xs-tr 1)
+                  4))))
+  (rove:testing "insert-preserving-order"
+    (let* ((xs (list 1 3 4 7 9))
            (xs-tr (list->treap xs)))
       (rove:ok (equal (treap->list
                        (insert-preserving-order
                         xs-tr 0))
-                      '(0 1 4 3 7 9))))
-    (let* ((xs (list 1 4 3 7 9))
+                      '(0 1 3 4 7 9))))
+    (let* ((xs (list 1 3 4 7 9))
            (xs-tr (list->treap xs)))
       (rove:ok (equal (treap->list
                        (insert-preserving-order
                         xs-tr 10))
-                      '(1 4 3 7 9 10))))))
+                      '(1 3 4 7 9 10)))))
+  #+nil
+  (rove:testing "remove-preserving-order"
+    (let* ((xs (list 1 3 4 7 9))
+           (xs-tr (list->treap xs)))
+      (setf xs-tr (remove-preserving-order
+                   xs-tr 1))
+      (rove:ok (equal (treap->list xs-tr)
+                      '(3 4 7 9)))
+      (setf xs-tr (remove-preserving-order
+                   xs-tr 4))
+      (rove:ok (equal (treap->list xs-tr)
+                      '(3 7 9))))))
 
 
 #+swank (rove:run-suite *package*)

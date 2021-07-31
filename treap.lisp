@@ -26,6 +26,7 @@
            #:remove
            #:insert!
            #:remove!
+           #:ref
            #:insert-preserving-order
            #:remove-preserving-order))
 
@@ -207,6 +208,15 @@
 
 (define-modify-macro insert! (key value) (lambda (treap key value) (insert treap key value)))
 (define-modify-macro remove! (key) (lambda (treap key) (remove treap key)))
+
+(defun ref (treap key)
+  (multiple-value-bind (removed c)
+      (remove treap key)
+    (declare ((maybe treap) removed c))
+    (prog1 (when c (treap-value c))
+      (setf treap (if c
+                      (insert removed key (treap-value c))
+                      removed)))))
 
 (declaim (ftype (Function ((maybe treap) fixnum uint) uint) %find-pos))
 (defun %find-pos (treap value acc)
