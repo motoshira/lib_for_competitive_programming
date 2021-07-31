@@ -212,7 +212,6 @@
 (define-modify-macro remove! (key) (lambda (treap key) (remove treap key)))
 
 (defmacro ref (treap key)
-  ;; 壊れてる？？
   (let ((removed (gensym "REMOVED"))
         (c (gensym "C"))
         (res (gensym "RES")))
@@ -226,32 +225,39 @@
                             (insert ,removed ,key ,res)
                             ,removed)))))))
 
-(declaim (ftype (Function ((maybe treap) fixnum uint) uint) %find-pos))
+(declaim (ftype (function ((maybe treap) fixnum uint) uint) %find-pos))
 (defun %find-pos (treap value acc)
-  (cond
-    ((null treap) acc)
-    ((= (treap-value treap) value)
-     (+ acc
-        (%get-cnt (treap-left treap))))
-    ((> (treap-value treap) value)
-     ;; 左
-     (%find-pos (treap-left treap) value acc))
-    (:else
-     (let ((new-acc (+ acc
-                       (%get-cnt (treap-left treap))
-                       1)))
-       (%find-pos (treap-right treap) value new-acc)))))
+  (declare ((maybe treap) treap)
+           (fixnum value)
+           (uint acc))
+  (the uint
+       (cond
+         ((null treap) acc)
+         ((= (treap-value treap) value)
+          (+ acc
+             (%get-cnt (treap-left treap))))
+         ((> (treap-value treap) value)
+          ;; 左
+          (%find-pos (treap-left treap) value acc))
+         (:else
+          (let ((new-acc (+ acc
+                            (%get-cnt (treap-left treap))
+                            1)))
+            (%find-pos (treap-right treap) value new-acc))))))
 
+(declaim (ftype (function ((maybe treap) fixnum) (maybe treap)) insert-preserving-order remove-preserving-order))
 (defun insert-preserving-order (treap value)
   (let ((key (%find-pos treap value 0)))
+    (declare (uint key))
     (insert treap key value)))
 
 (defun remove-preserving-order (treap value)
   (let ((key (%find-pos treap value 0)))
+    (declare (uint key))
     (remove treap key)))
 
-(define-modify-macro push! (value) #'insert-preserving-order)
-(define-modify-macro pop! (value) #'remove-preserving-order)
+(define-modify-macro add-value! (value) #'insert-preserving-order)
+(define-modify-macro remove-value! (value) #'remove-preserving-order)
 
 #+swank (load (merge-pathnames "test/treap.lisp" (uiop:current-lisp-file-pathname)) :if-does-not-exist nil)
 
