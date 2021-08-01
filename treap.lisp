@@ -15,7 +15,9 @@
   (:use #:cl)
   (:nicknames #:tr)
   (:shadow #:merge
-           #:remove)
+           #:remove
+           #:first
+           #:last)
   (:export #:list->treap
            #:treap->list
            #:merge
@@ -28,7 +30,9 @@
            #:insert-value
            #:remove-value
            #:insert-value!
-           #:remove-value!))
+           #:remove-value!
+           #:first
+           #:last))
 
 (in-package  #:treap)
 
@@ -267,6 +271,15 @@
 (define-modify-macro remove-value! (value)
   (lambda (treap value) (remove-value treap value))
   "treapをmultisetとみなして値を削除する。insert/remove等と併用不可。O(log(size))")
+
+(declaim (ftype (function ((maybe treap)) fixnum) first last))
+(defun first (treap)
+  (declare ((maybe treap) treap))
+  (ref treap 0))
+
+(defun last (treap)
+  (declare ((maybe treap) treap))
+  (ref treap (1- (%get-cnt treap))))
 
 #+swank (load (merge-pathnames "test/treap.lisp" (uiop:current-lisp-file-pathname)) :if-does-not-exist nil)
 

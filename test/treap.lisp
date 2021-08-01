@@ -2,7 +2,7 @@
 
 (defpackage :test/treap
   (:use #:cl #:treap)
-  (:shadowing-import-from #:treap #:merge #:remove)
+  (:shadowing-import-from #:treap #:merge #:remove #:first #:last)
   (:import-from #:rove))
 
 (in-package :test/treap)
@@ -80,27 +80,27 @@
       (rove:ok (= (ref xs-tr 1)
                   4))
       (rove:ok (equal (treap->list xs-tr) xs))))
-  (rove:testing "insert-preserving-order"
+  (rove:testing "insert-value"
     (let* ((xs (list 1 3 4 7 9))
            (xs-tr (list->treap xs)))
       (rove:ok (equal (treap->list
-                       (insert-preserving-order
+                       (insert-value
                         xs-tr 0))
                       '(0 1 3 4 7 9))))
     (let* ((xs (list 1 3 4 7 9))
            (xs-tr (list->treap xs)))
       (rove:ok (equal (treap->list
-                       (insert-preserving-order
+                       (insert-value
                         xs-tr 10))
                       '(1 3 4 7 9 10)))))
-  (rove:testing "remove-preserving-order"
+  (rove:testing "remove-value"
     (let* ((xs (list 1 3 4 7 9))
            (xs-tr (list->treap xs)))
-      (setf xs-tr (remove-preserving-order
+      (setf xs-tr (remove-value
                    xs-tr 1))
       (rove:ok (equal (treap->list xs-tr)
                       '(3 4 7 9)))
-      (setf xs-tr (remove-preserving-order
+      (setf xs-tr (remove-value
                    xs-tr 4))
       (rove:ok (equal (treap->list xs-tr)
                       '(3 7 9)))))
@@ -127,7 +127,12 @@
                       '(3 7 9)))
       (remove-value! xs-tr 9)
       (rove:ok (equal (treap->list xs-tr)
-                      '(3 7))))))
+                      '(3 7)))))
+  (rove:testing "first"
+    (let* ((xs (list 1 3 4 7 9))
+           (xs-tr (list->treap xs)))
+      (rove:ok (= (first xs-tr)
+                  1)))))
 
 
 #+swank (rove:run-suite *package*)
