@@ -27,6 +27,7 @@
            #:insert!
            #:remove!
            #:ref
+           #:get-size
            #:insert-value
            #:remove-value
            #:insert-value!
@@ -82,6 +83,10 @@
        (if (null treap)
            0
            (treap-cnt treap))))
+
+(declaim (inline get-size))
+(defun get-size (treap)
+  (%get-cnt treap))
 
 (declaim (ftype (function ((maybe treap) (maybe treap)) uint) %plus-cnt))
 (defun %plus-cnt (l r)
@@ -202,6 +207,8 @@
   "keyを削除する。O(log(size))"
   (declare ((maybe treap) treap)
            (uint key))
+  (when (null treap)
+    (error "Treap is empty."))
   (%check-index treap key :type :remove)
   (multiple-value-bind (l c-r)
       (split treap key)
