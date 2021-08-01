@@ -28,6 +28,7 @@
            #:remove!
            #:ref
            #:get-size
+           #:count-value
            #:insert-value
            #:remove-value
            #:insert-value!
@@ -287,6 +288,46 @@
 (defun last (treap)
   (declare ((maybe treap) treap))
   (ref treap (1- (%get-cnt treap))))
+
+(defun %upper-bound (treap value acc)
+  "value以上を要素にもつnodeの中で最小のkeyを返す。なければnilを返す。"
+  (when treap
+    (with-slots (left
+                 right
+                 (tr-val value))
+        treap
+      (or (%upper-bound left value acc)
+          (when (>= tr-val value)
+            (+ acc
+               (%get-cnt left)))
+          (%upper-bound right value (+ acc
+                                       (%get-cnt left)
+                                       1))))))
+
+(defmacro count-value (treap value)
+  (let ((key (gensym))
+        (key-plus-one (gensym))
+        (c (gensym))
+        (c-r (gensym))
+        (l (gensym))
+        (r (gensym))
+        (size (gensym)))
+    `(let* ((,key (%upper-bound ,treap ,value 0))
+            (,key-plus-one (%upper-bound ,treap (1+ ,value) 0))
+            (,size (%get-cnt ,treap)))
+       (prog1 (- (or ,key-plus-one ,size)
+                 (or ,key ,size))
+         (multiple-value-bind (,l ,c-r)
+             (if ,key
+                 (split ,treap ,key)
+                 (values ,treap nil))
+           (multiple-value-bind (,c ,r)
+               (if ,key-plus-one
+                   (split ,c-r ,key-plus-one)
+                   (values ,c-r nil))
+             (setf ,treap
+                   (merge (merge ,l ,c)
+                          ,r))))))))
 
 #+swank (load (merge-pathnames "test/treap.lisp" (uiop:current-lisp-file-pathname)) :if-does-not-exist nil)
 
