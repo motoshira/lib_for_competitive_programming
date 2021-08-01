@@ -80,6 +80,11 @@
       (rove:ok (= (ref xs-tr 1)
                   4))
       (rove:ok (equal (treap->list xs-tr) xs))))
+  (rove:testing "count-value"
+    (let* ((xs (list 1 1 3 4 7 9))
+           (xs-tr (list->treap xs)))
+      (rove:ok (= 1 (count-value xs-tr 3)))
+      (rove:ok (= 2 (count-value xs-tr 1)))))
   (rove:testing "insert-value"
     (let* ((xs (list 1 3 4 7 9))
            (xs-tr (list->treap xs)))
