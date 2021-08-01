@@ -221,6 +221,11 @@
         (declare ((maybe treap) res))
         (values res c)))))
 
+(defun update (treap key value)
+  (insert (remove treap key)
+          key
+          value))
+
 (define-modify-macro insert! (key value) (lambda (treap key value) (insert treap key value)) "keyの位置にvalueを挿入する。O(log(size))")
 (define-modify-macro remove! (key) (lambda (treap key) (remove treap key)) "keyを削除する。O(log(size))")
 
