@@ -1,6 +1,11 @@
 (defpackage radix-heap
   (:use #:cl)
-  (:nicknames #:rd))
+  (:nicknames #:rd)
+  (:export #:make-radix-heap
+           #:heap-size
+           #:empty-p
+           #:push!
+           #:pop!))
 
 (in-package #:rd)
 
@@ -50,11 +55,27 @@
 (eval-when (:compile-toplevel :load-toplevel)
   (defparameter *buf-size* 33))
 
-(defstruct radix-heap
+(defstruct (radix-heap (:conc-name heap-))
   (buf (make-array #.*buf-size* :element-type '(or null pair-stack)
                                 :initial-element nil)
    :type (simple-array (or null pair-stack) (#.*buf-size*)))
   (size 0 :type uint)
   (last 0 :type uint))
+
+(defun empty-p (heap)
+  (zerop (heap-size heap)))
+
+(defun get-bit (uint)
+  (let ((cnt 0))
+    (loop while (plusp uint)
+          do (incf cnt)
+             (setf uint (ash uint -1)))
+    cnt))
+
+(defun push! (heap key value)
+  (with-slots (buf size last) heap
+    (incf size)
+    (let ((pos (logxor key last)))
+      (pstack-push! (key value) (aref buf pos)))))
 
 #+swank (load (merge-pathnames "test/radix-heap.lisp" (uiop:current-lisp-file-pathname)) :if-does-not-exist nil)
