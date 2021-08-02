@@ -55,7 +55,8 @@
 (eval-when (:compile-toplevel :load-toplevel)
   (defparameter *buf-size* 33))
 
-(defstruct (radix-heap (:conc-name heap-))
+(defstruct (radix-heap (:constructor make-radix-heap ())
+                       (:conc-name heap-))
   (buf (make-array #.*buf-size* :element-type '(or null pair-stack)
                                 :initial-element nil)
    :type (simple-array (or null pair-stack) (#.*buf-size*)))
