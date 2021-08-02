@@ -75,7 +75,27 @@
 (defun push! (heap key value)
   (with-slots (buf size last) heap
     (incf size)
-    (let ((pos (logxor key last)))
+    (let ((pos (get-bit (logxor key last))))
       (pstack-push! (key value) (aref buf pos)))))
+
+(defparameter *inf* #.(1- (ash 1 32)))
+
+(defun pop! (heap)
+  (with-slots (buf size last)
+      heap
+    (when (pstack-empty-p (aref buf 0))
+      (let ((idx 1))
+        (loop while (pstack-empty-p (aref buf idx))
+              do (incf idx))
+        (let ((new-last *inf*))
+          (do-pstack ((key _value) (aref buf idx))
+            (declare (ignore _value))
+            (setf new-last (min new-last key)))
+          (do-pstack ((key value) (aref buf idx))
+            (let ((next (get-bit (logxor key new-last))))
+              (pstack-push! (key value) (aref buf next))))
+          (setf (aref buf idx) nil))))
+    (decf size)
+    (pstack-pop! (aref buf 0))))
 
 #+swank (load (merge-pathnames "test/radix-heap.lisp" (uiop:current-lisp-file-pathname)) :if-does-not-exist nil)
