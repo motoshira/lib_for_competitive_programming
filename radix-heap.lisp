@@ -1,3 +1,11 @@
+;;;
+;;; BOF
+;;;
+
+;; Radix Heap
+;; reference:
+;;   https://ei1333.github.io/algorithm/radix-heap.html
+
 (defpackage radix-heap
   (:use #:cl)
   (:nicknames #:rd)
@@ -94,6 +102,9 @@
 
 (defun pop! (heap)
   (declare (radix-heap heap))
+  #+swank
+  (when (empty-p heap)
+    (error "Heap is empty."))
   (with-slots (buf size last)
       heap
     (when (pstack-empty-p (aref buf 0))
@@ -116,3 +127,7 @@
     (pstack-pop! (aref buf 0))))
 
 #+swank (load (merge-pathnames "test/radix-heap.lisp" (uiop:current-lisp-file-pathname)) :if-does-not-exist nil)
+
+;;;
+;;; EOF
+;;;
