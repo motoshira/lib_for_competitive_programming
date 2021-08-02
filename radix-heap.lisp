@@ -19,62 +19,40 @@
 
 (deftype uint () '(unsigned-byte 32))
 
-(defstruct (pair-stack (:constructor make-pstack)
-                       (:conc-name ps-))
-  (l 0 :type uint)
-  (r 0 :type uint)
-  (tail nil :type (or null pair-stack)))
-
-(defmacro pstack-push! ((l r) pstack)
-  (multiple-value-bind (args argvs new setter accessor)
-      (get-setf-expansion pstack)
-    `(let ,(mapcar #'list args argvs)
-       (let ((,@new (make-pstack :l ,l
-                                 :r ,r
-                                 :tail ,accessor)))
-         ,setter))))
-
-(defmacro pstack-pop! (pstack)
-  (let ((l (gensym))
-        (r (gensym))
-        (tail (gensym)))
-    (multiple-value-bind (args argvs new setter accessor)
-        (get-setf-expansion pstack)
-      `(let ,(mapcar #'list args argvs)
-         (with-slots ((,l l)
-                      (,r r)
-                      (,tail tail))
-             ,accessor
-           (let ((,@new ,tail))
-             ,setter
-             (values ,l ,r)))))))
-
-(declaim (inline pstack-empty-p))
-(defun pstack-empty-p (pstack)
-  (declare ((or null pair-stack) pstack))
-  (null pstack))
-
-(defmacro do-pstack (((l r) pstack) &body body)
-  (let ((ps (gensym)))
-    `(let ((,ps ,pstack))
-       (declare ((or null pair-stack) ,ps))
-       (loop until (pstack-empty-p ,ps)
-             do (multiple-value-bind (,l ,r)
-                    (pstack-pop! ,ps)
-                  (declare (uint ,l ,r))
-                  ,@body)))))
-
 (eval-when (:compile-toplevel :load-toplevel)
   (defparameter *buf-size* 33)
-  (defparameter *inf* (1- (ash 1 32))))
+  (defparameter *inf* (1- (ash 1 32)))
+  (defparameter *initial-stack-size* 1000))
 
 (defstruct (radix-heap (:constructor make-radix-heap ())
                        (:conc-name heap-))
-  (buf (make-array #.*buf-size* :element-type '(or null pair-stack)
-                                :initial-element nil)
-   :type (simple-array (or null pair-stack) (#.*buf-size*)))
+  (keys (make-array #.*buf-size* :element-type 'vector
+                                 :initial-contents (loop repeat *buf-size* collect (make-array #.*initial-stack-size* :fill-pointer 0
+                                                                                                                      :element-type 'uint
+                                                                                                                      :adjustable t)))
+   :type (simple-array vector (#.*buf-size*)))
+  (values (make-array #.*buf-size* :element-type 'vector
+                                   :initial-contents  (loop repeat *buf-size* collect (make-array #.*initial-stack-size* :fill-pointer 0
+                                                                                                                         :element-type t
+                                                                                                                         :adjustable t)))
+   :type (simple-array vector (#.*buf-size*)))
   (size 0 :type uint)
   (last 0 :type uint))
+
+#+swank
+(defmethod print-object ((obj radix-heap)
+                         stream)
+  (print-unreadable-object (obj stream)
+    (fresh-line stream)
+    (loop for xs in (sort (loop for kv across (heap-keys obj)
+                                for vv across (heap-values obj)
+                                append (loop for k across kv
+                                             for v across vv
+                                             collect (cons k v)))
+                          #'<
+                          :key #'first)
+          do (princ xs stream)
+             (terpri stream))))
 
 (declaim (inline empty-p get-bit push! pop!))
 (defun empty-p (heap)
@@ -92,12 +70,15 @@
 
 (defun push! (heap key value)
   (declare (radix-heap heap)
-           (uint key value))
-  (with-slots (buf size last) heap
+           (uint key)
+           (t value))
+  (with-slots (keys values size last) heap
     (incf size)
     (let ((pos (get-bit (logxor key last))))
       (declare (uint pos))
-      (pstack-push! (key value) (aref buf pos)))))
+      (vector-push-extend key (aref keys pos))
+      (vector-push-extend value (aref values pos))
+      heap)))
 
 
 (defun pop! (heap)
@@ -105,26 +86,27 @@
   #+swank
   (when (empty-p heap)
     (error "Heap is empty."))
-  (with-slots (buf size last)
+  (princ heap)
+  (terpri)
+  (with-slots (keys values size last)
       heap
-    (when (pstack-empty-p (aref buf 0))
+    (when (zerop (fill-pointer (aref keys 0)))
       (let ((idx 1))
         (declare (uint idx))
-        (loop while (pstack-empty-p (aref buf idx))
+        (loop while (zerop (fill-pointer (aref keys idx)))
               do (incf idx))
-        (let ((new-last #.*inf*))
+        (let ((new-last (reduce #'min (aref keys idx))))
           (declare (uint new-last))
-          (do-pstack ((key _value) (aref buf idx))
-            (declare (ignore _value)
-                     (uint key))
-            (setf new-last (min new-last key)))
-          (do-pstack ((key value) (aref buf idx))
-            (let ((next (get-bit (logxor key new-last))))
-              (declare (uint next))
-              (pstack-push! (key value) (aref buf next))))
-          (setf (aref buf idx) nil))))
+          (loop repeat (fill-pointer (aref keys idx))
+                for key of-type uint = (vector-pop (aref keys idx))
+                for value of-type uint = (vector-pop (aref values idx))
+                for next of-type uint = (get-bit (logxor key new-last))
+                do (vector-push-extend key (aref keys next))
+                   (vector-push-extend value (aref values next)))
+          (setf last new-last))))
     (decf size)
-    (pstack-pop! (aref buf 0))))
+    (values (vector-pop (aref keys 0))
+            (vector-pop (aref values 0)))))
 
 #+swank (load (merge-pathnames "test/radix-heap.lisp" (uiop:current-lisp-file-pathname)) :if-does-not-exist nil)
 
