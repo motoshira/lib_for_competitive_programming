@@ -100,6 +100,7 @@
 (defun %propagate (treap)
   ;; 子のcntが正しいことを前提とする
   ;; つまり葉から根へ伝搬すればよい
+  (declare ((maybe treap) treap))
   (when treap
     (with-slots (left right) treap
       (setf (treap-cnt treap) (1+ (%plus-cnt left right))))))
@@ -147,29 +148,28 @@
            (uint key))
   (when (null treap)
     (return-from split (values nil nil)))
-  (the (values (maybe treap)
-               (maybe treap))
-       (cond
-         ((>= (%get-cnt (treap-left treap)) key)
-          ;; cntが十分大きい => 左
-          (multiple-value-bind (new-l new-r)
-              (split (treap-left treap)
-                     key)
-            (declare ((maybe treap) new-l new-r))
-            (setf (treap-left treap) new-r)
-            (%propagate treap)
-            (values new-l treap)))
-         (:else
-          ;; 右
-          (multiple-value-bind (new-l new-r)
-              (split (treap-right treap)
+  (cond
+    ((>= (%get-cnt (treap-left treap)) key)
+     ;; cntが十分大きい => 左
+     (multiple-value-bind (new-l new-r)
+         (split (treap-left treap)
+                key)
+       (declare ((maybe treap) new-l new-r))
+       (setf (treap-left treap) new-r)
+       (%propagate treap)
+       (values new-l treap)))
+    (:else
+     ;; 右
+     (multiple-value-bind (new-l new-r)
+         (split (treap-right treap)
+                (the uint
                      (- key
                         (%get-cnt (treap-left treap))
-                        1))
-            (declare ((maybe treap) new-l new-r))
-            (setf (treap-right treap) new-l)
-            (%propagate treap)
-            (values treap new-r))))))
+                        1)))
+       (declare ((maybe treap) new-l new-r))
+       (setf (treap-right treap) new-l)
+       (%propagate treap)
+       (values treap new-r)))))
 
 #+swank
 (define-condition invalid-treap-index-error (error)
@@ -221,13 +221,18 @@
         (declare ((maybe treap) res))
         (values res c)))))
 
+(declaim (ftype (function ((maybe treap) uint fixnum) (maybe treap)) update))
 (defun update (treap key value)
+  (declare ((maybe treap) treap)
+           (uint key)
+           (fixnum value))
   (insert (remove treap key)
           key
           value))
 
 (define-modify-macro insert! (key value) (lambda (treap key value) (insert treap key value)) "keyの位置にvalueを挿入する。O(log(size))")
 (define-modify-macro remove! (key) (lambda (treap key) (remove treap key)) "keyを削除する。O(log(size))")
+(define-modify-macro update! (key value) (lambda (treap key value) (update treap key value)) "keyの位置の値をvalueで更新する。O(log(size))")
 
 (defmacro ref (treap key)
   "keyの値を返す。O(log(size))"
@@ -285,7 +290,8 @@
   (lambda (treap value) (remove-value treap value))
   "treapをmultisetとみなして値を削除する。insert/remove等と併用不可。O(log(size))")
 
-(declaim (ftype (function ((maybe treap)) fixnum) first last))
+(declaim (inline first last)
+         (ftype (function ((maybe treap)) fixnum) first last))
 (defun first (treap)
   (declare ((maybe treap) treap))
   (ref treap 0))
@@ -296,6 +302,9 @@
 
 (defun %upper-bound (treap value acc)
   "value以上を要素にもつnodeの中で最小のkeyを返す。なければnilを返す。"
+  (declare ((maybe treap) treap)
+           (fixnum value)
+           (uint acc))
   (when treap
     (with-slots (left
                  right
@@ -305,9 +314,11 @@
           (when (>= tr-val value)
             (+ acc
                (%get-cnt left)))
-          (%upper-bound right value (+ acc
-                                       (%get-cnt left)
-                                       1))))))
+          (when (>= (treap-value right) value)
+            (%upper-bound right value (the uint
+                                           (+ acc
+                                              (%get-cnt left)
+                                              1))))))))
 
 (defmacro count-value (treap value)
   (let ((key (gensym))
