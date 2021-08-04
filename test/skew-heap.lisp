@@ -40,7 +40,7 @@
                     (3 nil))
                   (heap->list (meld xs-sk ys-sk))))))
 
-  (testing "push!"
+  (testing "push! and pop!"   ;; 雑だけどヨシ！
     (let ((xs (loop repeat 10000
                     for k = (random 1000000)
                     for v = (nth (random 3)

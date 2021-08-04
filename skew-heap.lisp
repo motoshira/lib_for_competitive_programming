@@ -9,6 +9,7 @@
   (:use #:cl)
   (:nicknames #:sk)
   (:export #:heap
+           #:make-heap
            #:heap->list
            #:empty-p
            #:meld
