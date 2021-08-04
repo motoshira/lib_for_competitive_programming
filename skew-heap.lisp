@@ -5,6 +5,19 @@
 ;; Skew Heap
 ;; Reference: http://hos.ac/blog/#blog0001
 
+(defpackage skew-heap
+  (:use #:cl)
+  (:nicknames #:sk)
+  (:export #:heap
+           #:heap->list
+           #:empty-p
+           #:meld
+           #:peak
+           #:push!
+           #:pop!))
+
+(in-package #:sk)
+
 (defstruct (heap (:constructor make-heap (key value &key l r)))
   (key key :type fixnum)
   (value value :type t)
@@ -23,14 +36,14 @@
       (%traverse heap)
       (reverse res))))
 
-(defun heap-empty-p (heap)
+(defun empty-p (heap)
   (null heap))
 
-(defun heap-peak (heap)
+(defun peak (heap)
   (values (heap-key heap)
           (heap-value heap)))
 
-(defun heap-meld (l r)
+(defun meld (l r)
   (declare ((or null heap) l r))
   (the (or null heap)
        (cond
@@ -38,27 +51,27 @@
          ((null r) l)
          (:else (when (> (heap-key l) (heap-key r))
                   (rotatef l r))
-                (setf (heap-r l) (heap-meld (heap-r l) r))
+                (setf (heap-r l) (meld (heap-r l) r))
                 (rotatef (heap-l l) (heap-r l))
                 l))))
 
-(defmacro heap-push! (heap key value)
+(defmacro push! (heap key value)
   (multiple-value-bind (args argvs val setter getter)
       (get-setf-expansion heap)
     `(let ,(mapcar #'list args argvs)
-       (let ((,@val (heap-meld (make-heap ,key ,value) ,getter)))
+       (let ((,@val (meld (make-heap ,key ,value) ,getter)))
          ,setter))))
 
-(defmacro heap-pop! (heap)
+(defmacro pop! (heap)
   (let ((key (gensym))
         (value (gensym)))
     (multiple-value-bind (args argvs val setter getter)
         (get-setf-expansion heap)
       `(let ,(mapcar #'list args argvs)
-         (let ((,@val (heap-meld (heap-l ,getter)
-                                 (heap-r ,getter))))
+         (let ((,@val (meld (heap-l ,getter)
+                            (heap-r ,getter))))
            (multiple-value-bind (,key ,value)
-               (heap-peak ,getter)
+               (peak ,getter)
              ,setter
              (values ,key ,value)))))))
 
