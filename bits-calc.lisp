@@ -8,15 +8,28 @@
 (deftype uint32 () '(unsigned-byte 32))
 (deftype uint8 () '(unsigned-byte 8))
 
+(defmacro with-type-wrap ((op type) &body body)
+  `(progn
+     ,@(mapcar (lambda (form)
+                 (if (and (consp form)
+                          (eq (first form)
+                              op))
+                     `(,op ,@(mapcar (lambda (elem)
+                                         `(the ,type ,elem))
+                                     (rest form)))
+                     form))
+               body)))
+
 (declaim (ftype (function (uint32) uint8) get-lsb))
 (defun get-lsb (value)
   (declare (uint32 value))
   (macrolet ((%proc (hex)
                (let ((next? (gensym)))
-                 `(let ((,next? (logand (the uint32 value) ,hex)))
-                    (declare (uint32 ,next?))
-                    (when (plusp ,next?)
-                      (setf (the uint32 value) ,next?))))))
+                 `(with-type-wrap (logand setf)
+                    (with-type-wrap (setf uint32)
+                      (let ((,next? (logand value ,hex)))
+                        (unless (zerop ,next?)
+                          (setf value ,next?))))))))
     (%proc #xffff0000)
     (%proc #xff00ff00)
     (%proc #xf0f0f0f0)
@@ -28,21 +41,20 @@
 (defun popcount (value)
   (declare (uint32 value))
   (macrolet ((%proc (&rest args)
-               `(progn
-                  ,@(loop for (hex1 hex2 shift) in args
-                          collect `(setf (the uint32 value)
-                                         (the uint32
-                                              (+ (the uint32
-                                                      (logand (the uint32 value)
-                                                              ,hex1))
-                                                 (the uint32
-                                                      (ash (the uint32
-                                                                (logand (the uint32 value)
-                                                                        ,hex2))
-                                                           ,(- shift))))))))))
+               `(with-type-wrap (+ uint32)
+                  (with-type-wrap (logand uint32)
+                    (with-type-wrap (ash uint32)
+                      (with-type-wrap (setf uint32)
+                        ,@(loop for (hex1 hex2 shift) in args
+                                collect `(setf value
+                                               (+ (logand value
+                                                          ,hex1)
+                                                  (ash (logand value
+                                                               ,hex2)
+                                                       ,(- shift)))))))))))
     (%proc (#x55555555 #xaaaaaaaa 1)
            (#x33333333 #xcccccccc 2)
            (#x0f0f0f0f #xf0f0f0f0 4)
            (#x00ff00ff #xff00ff00 8)
            (#x0000ffff #xffff0000 16))
-    (the uint32 value)))
+    value))
