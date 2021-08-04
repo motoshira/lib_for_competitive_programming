@@ -40,8 +40,10 @@
   (null heap))
 
 (defun peak (heap)
-  (values (heap-key heap)
-          (heap-value heap)))
+  (if (null heap)
+      (values nil nil)
+      (values (heap-key heap)
+              (heap-value heap))))
 
 (defun meld (l r)
   (declare ((or null heap) l r))
@@ -68,8 +70,8 @@
     (multiple-value-bind (args argvs val setter getter)
         (get-setf-expansion heap)
       `(let ,(mapcar #'list args argvs)
-         (let ((,@val (meld (heap-l ,getter)
-                            (heap-r ,getter))))
+         (let ((,@val (meld (when ,getter (heap-l ,getter))
+                            (when ,getter (heap-r ,getter)))))
            (multiple-value-bind (,key ,value)
                (peak ,getter)
              ,setter
