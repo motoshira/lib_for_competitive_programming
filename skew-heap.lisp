@@ -25,16 +25,15 @@
   (r nil :type (or null heap)))
 
 (defun heap->list (heap)
-  (let ((res nil))
-    (labels ((%traverse (node)
-               (when node
-                 (with-slots (key value l r)
-                     node
-                   (push (list key value) res)
-                   (%traverse l)
-                   (%traverse r)))))
-      (%traverse heap)
-      (reverse res))))
+  (let ((res nil)
+        (h heap))
+    (loop until (empty-p h)
+          do (push (list (heap-key h)
+                         (heap-value h))
+                   res)
+             (setf h (meld (heap-l h)
+                           (heap-r h))))
+    (reverse res)))
 
 (defun empty-p (heap)
   (null heap))

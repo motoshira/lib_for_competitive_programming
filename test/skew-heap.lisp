@@ -23,6 +23,22 @@
   (testing "peak"
     (ok (equal '(1 2) (multiple-value-list (peak (sk::make-heap 1 2)))))
     (ok (equal '(nil nil) (multiple-value-list (peak nil)))))
+  (testing "meld"
+    (let ((xs (list (list 1 2)
+                    (list 0 4)))
+          (ys (list (list 2 0)
+                    (list 3 nil)))
+          (xs-sk nil)
+          (ys-sk nil))
+      (loop for (k v) in xs
+            do (setf xs-sk (meld xs-sk (sk::make-heap k v))))
+      (loop for (k v) in ys
+            do (setf ys-sk (meld ys-sk (sk::make-heap k v))))
+      (ok (equalp '((0 4)
+                    (1 2)
+                    (2 0)
+                    (3 nil))
+                  (heap->list (meld xs-sk ys-sk))))))
   #+nil
   (testing "push!"
     (let ((xs (loop repeat 10000
