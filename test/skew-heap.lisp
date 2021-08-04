@@ -39,7 +39,7 @@
                     (2 0)
                     (3 nil))
                   (heap->list (meld xs-sk ys-sk))))))
-  #+nil
+
   (testing "push!"
     (let ((xs (loop repeat 10000
                     for k = (random 1000000)
@@ -51,10 +51,10 @@
           (sk nil)
           (res nil))
       (loop for (k v) in xs
-            do (assert (numberp ))
+            do (assert (numberp k))
             do (push! sk k v))
       (loop until (empty-p sk)
-            for (values k v) = (pop! sk)
+            for (k v) = (multiple-value-list (pop! sk))
             do (push (list k v) res))
       (assert (equalp (mapcar #'first (reverse res))
                       (sort (mapcar #'first xs) #'<))))))
