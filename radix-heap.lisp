@@ -62,18 +62,24 @@
       (setf (gethash pointer table) value)
       (incf (aref counter idx)))))
 
+(defmacro do-pstack ((x pstack idx) &body body)
+  (let ((cnt (gensym))
+        (table (gensym))
+        (i (gensym)))
+    `(let ((,cnt (get-cnt ,pstack ,idx)))
+       (with-slots (,table) ,pstack
+         (loop for ,i of-type fixnum
+               from (encode ,idx 0)
+                 below (encode ,idx ,cnt)
+               for ,x = (gethash ,i ,table)
+               do ,@body)))))
+
 (defstruct (radix-heap (:constructor make-radix-heap ())
                        (:conc-name heap-))
-  (keys (make-array #.*buf-size* :element-type 'vector
-                                 :initial-contents (loop repeat #.*buf-size* collect (make-array #.*initial-stack-size* :fill-pointer 0
-                                                                                                                      :element-type 'uint
-                                                                                                                      :adjustable t)))
-   :type (simple-array vector (#.*buf-size*)))
-  (values (make-array #.*buf-size* :element-type 'vector
-                                   :initial-contents  (loop repeat #.*buf-size* collect (make-array #.*initial-stack-size* :fill-pointer 0
-                                                                                                                         :element-type t
-                                                                                                                         :adjustable t)))
-   :type (simple-array vector (#.*buf-size*)))
+  (keys (make-pseudo-stacks)
+   :type pseudo-stacks)
+  (values (make-pseudo-stacks)
+   :type pseudo-stacks)
   (size 0 :type uint)
   (last 0 :type uint))
 
