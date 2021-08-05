@@ -26,7 +26,7 @@
   (defparameter *initial-stack-size* 1000))
 
 (defstruct pseudo-stacks
-  (table (make-hash-table :test #'eq) :type hash-table)
+  (table (make-hash-table :test #'eq :size 1000000) :type hash-table)
   (counter (make-array *buf-size* :element-type 'fixnum
                                   :initial-element 0)
    :type (simple-array fixnum (#.*buf-size*))))
@@ -167,11 +167,11 @@
             (let ((next (get-msb (logxor (pair-key pair)
                                          new-last))))
               (pstack-push! pstacks next pair)))
-          (setf last new-last))))
+          (setf last new-last)
+          (clear-pstack pstacks idx))))
     (decf size)
     (let ((p (pstack-peak pstacks 0)))
       (assert p)
-
       (with-slots (key value)
           (pstack-pop! pstacks 0)
         (values key value)))))

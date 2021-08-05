@@ -76,7 +76,6 @@
             "pstack内の数は変わらず")
         (ok (equal '(2 3) (pop res)))
         (ok (equal '(1 4) (pop res))))))
-  #+nil
   (testing "radix-heap"
     (let ((xs (list (list 1 2)
                     (list 2 3)
