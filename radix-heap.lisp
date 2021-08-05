@@ -22,7 +22,7 @@
 (eval-when (:compile-toplevel :load-toplevel :execute)
   (defparameter *buf-size* 33)
   (defparameter *inf* (1- (ash 1 32)))
-  (defparameter *max-stack-size* 1000000)
+  (defparameter *max-stack-size* 10000000)
   (defparameter *initial-stack-size* 1000))
 
 (defstruct pseudo-stacks
@@ -35,9 +35,11 @@
   (key 0 :type fixnum)
   (value 0 :type fixnum))
 
+(declaim (inline encode get-cnt pstack-empty-p get-pointer pstack-peak pstack-pop! pstack-push!))
 (defun encode (idx cnt)
-  (+ (* idx *max-stack-size*)
-     cnt))
+  (the uint
+       (+ (the uint (* idx (the uint *max-stack-size*)))
+          (the uint cnt))))
 
 (defun get-cnt (pstack idx)
   (with-slots (counter) pstack
@@ -57,15 +59,15 @@
 
 (defun pstack-pop! (pstack idx)
   (with-slots (counter) pstack
+    (assert (plusp (aref counter idx)))
     (prog1 (pstack-peak pstack idx)
-      ;; remhashしてもいいがタイムロスしそうなので放置
       (decf (aref counter idx)))))
 
 (defun pstack-push! (pstack idx pair)
   (with-slots (table counter) pstack
+    (incf (aref counter idx))
     (let* ((pointer (get-pointer pstack idx)))
-      (setf (gethash pointer table) pair)
-      (incf (aref counter idx)))))
+      (setf (gethash pointer table) pair))))
 
 (defun clear-pstack (pstacks idx)
   (declare (pseudo-stacks pstacks))
@@ -130,7 +132,6 @@
            (uint key)
            (t value))
   (with-slots (pstacks size last) heap
-    (incf size)
     (let ((idx (get-msb (logxor key last))))
       (declare (uint idx))
       (pstack-push! pstacks
@@ -164,9 +165,12 @@
               (pstack-push! pstacks next pair)))
           (setf last new-last))))
     (decf size)
-    (with-slots (key value)
-        (pstack-pop! pstacks 0)
-      (values key value))))
+    (let ((p (pstack-peak pstacks 0)))
+      (assert p)
+
+      (with-slots (key value)
+          (pstack-pop! pstacks 0)
+        (values key value)))))
 
 #+swank (load (merge-pathnames "test/radix-heap.lisp" (uiop:current-lisp-file-pathname)) :if-does-not-exist nil)
 

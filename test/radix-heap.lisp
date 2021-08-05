@@ -10,6 +10,15 @@
 (in-package #:test/radix-heap)
 
 (deftest radix-heap-test
+  (testing "get-cnt"
+    (let ((ps (rd::make-pseudo-stacks))
+          (xs (list (list 1 4)
+                    (list 2 3)))
+          (idx (random 10000)))
+      (dolist (ys xs)
+        (rd::pstack-push! ps idx (rd::make-pair :key (first ys) :value (second ys))))
+      (ok (= 2 (rd::get-cnt ps idx)))))
+  #+nil
   (testing "radix-heap"
     (let ((xs (list (list 1 2)
                     (list 2 3)
