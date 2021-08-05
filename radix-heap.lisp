@@ -31,6 +31,10 @@
                                   :initial-element 0)
    :type (simple-array fixnum (#.*buf-size*))))
 
+(defstruct pair
+  (key 0 :type fixnum)
+  (value 0 :type fixnum))
+
 (defun encode (idx cnt)
   (+ (* idx *max-stack-size*)
      cnt))
@@ -48,7 +52,8 @@
 
 (defun pstack-peak (pstack idx)
   (with-slots (table) pstack
-    (gethash (get-pointer pstack idx) table)))
+    (the (or null pair)
+         (gethash (get-pointer pstack idx) table))))
 
 (defun pstack-pop! (pstack idx)
   (with-slots (counter) pstack
@@ -56,29 +61,31 @@
       ;; remhashしてもいいがタイムロスしそうなので放置
       (decf (aref counter idx)))))
 
-(defun pstack-push! (pstack idx value)
+(defun pstack-push! (pstack idx pair)
   (with-slots (table counter) pstack
     (let* ((pointer (get-pointer pstack idx)))
-      (setf (gethash pointer table) value)
+      (setf (gethash pointer table) pair)
       (incf (aref counter idx)))))
 
-(defmacro do-pstack ((x pstack idx) &body body)
+(defun clear-pstack (pstacks idx)
+  (declare (pseudo-stacks pstacks))
+  (with-slots (counter) pstacks
+    (setf (aref counter idx) 0)))
+
+(defmacro do-pstack ((pair pstack idx) &body body)
   (let ((cnt (gensym))
-        (table (gensym))
         (i (gensym)))
     `(let ((,cnt (get-cnt ,pstack ,idx)))
-       (with-slots (,table) ,pstack
+       (with-slots (table) ,pstack
          (loop for ,i of-type fixnum
                from (encode ,idx 0)
                  below (encode ,idx ,cnt)
-               for ,x = (gethash ,i ,table)
+               for ,pair of-type pair = (gethash ,i table)
                do ,@body)))))
 
 (defstruct (radix-heap (:constructor make-radix-heap ())
                        (:conc-name heap-))
-  (keys (make-pseudo-stacks)
-   :type pseudo-stacks)
-  (values (make-pseudo-stacks)
+  (pstacks (make-pseudo-stacks)
    :type pseudo-stacks)
   (size 0 :type uint)
   (last 0 :type uint))
@@ -88,41 +95,49 @@
                          stream)
   (print-unreadable-object (obj stream)
     (fresh-line stream)
-    (loop for xs in (sort (loop for kv across (heap-keys obj)
-                                for vv across (heap-values obj)
-                                append (loop for k across kv
-                                             for v across vv
-                                             collect (cons k v)))
-                          #'<
-                          :key #'first)
-          do (princ xs stream)
-             (terpri stream))))
+    (let ((res nil))
+      (dotimes (idx *buf-size*)
+        (do-pstack (pair (heap-pstacks obj) idx)
+          (with-slots (key value) pair
+            (push (list key value) res))))
+      (dolist (xs (reverse res))
+        (princ xs stream)
+        (terpri stream)))))
 
-(declaim (inline empty-p get-bit push! pop!))
+(declaim (inline empty-p get-msb push! pop!))
 (defun empty-p (heap)
   (declare (radix-heap heap))
   (zerop (heap-size heap)))
 
-(defun get-bit (uint)
+(declaim (inline get-msb))
+(defun get-msb (uint)
   (declare (uint uint))
-  (let ((cnt 0))
-    (declare (uint cnt))
-    (loop while (plusp uint)
-          do (incf cnt)
-             (setf uint (ash uint -1)))
-    cnt))
+  (let ((ng -1)
+        (ok 33))
+    (loop while (> (abs (the uint (- ok ng)))
+                    1)
+          do (let ((mid (ash (the uint (+ ok ng)) -1)))
+               (if (>= (the uint (ash 1 mid)) uint)
+                   (setf (the uint ok) (the uint mid))
+                   (setf (the uint ng) (the uint mid)))))
+    (the uint
+         (if (= (the uint (ash 1 ok)) uint)
+             (1+ ok)
+             ok))))
 
 (defun push! (heap key value)
   (declare (radix-heap heap)
            (uint key)
            (t value))
-  (with-slots (keys values size last) heap
+  (with-slots (pstacks size last) heap
     (incf size)
-    (let ((pos (get-bit (logxor key last))))
-      (declare (uint pos))
-      (vector-push-extend key (aref keys pos))
-      (vector-push-extend value (aref values pos))
-      heap)))
+    (let ((idx (get-msb (logxor key last))))
+      (declare (uint idx))
+      (pstack-push! pstacks
+                    idx
+                    (make-pair :key key
+                               :value value))
+      (incf size))))
 
 
 (defun pop! (heap)
@@ -130,25 +145,28 @@
   #+swank
   (when (empty-p heap)
     (error "Heap is empty."))
-  (with-slots (keys values size last)
+  (with-slots (pstacks size last)
       heap
-    (when (zerop (fill-pointer (aref keys 0)))
+    (when (pstack-empty-p pstacks 0)
       (let ((idx 1))
         (declare (uint idx))
-        (loop while (zerop (fill-pointer (aref keys idx)))
+        (loop while (pstack-empty-p pstacks idx)
               do (incf idx))
-        (let ((new-last (reduce #'min (aref keys idx))))
+        (let ((new-last *inf*))
           (declare (uint new-last))
-          (loop repeat (fill-pointer (aref keys idx))
-                for key of-type uint = (vector-pop (aref keys idx))
-                for value of-type uint = (vector-pop (aref values idx))
-                for next of-type uint = (get-bit (logxor key new-last))
-                do (vector-push-extend key (aref keys next))
-                   (vector-push-extend value (aref values next)))
+          (do-pstack (pair pstacks idx)
+            (setf new-last
+                  (the uint (min new-last
+                                 (pair-key pair)))))
+          (do-pstack (pair pstacks idx)
+            (let ((next (get-msb (logxor (pair-key pair)
+                                         new-last))))
+              (pstack-push! pstacks next pair)))
           (setf last new-last))))
     (decf size)
-    (values (vector-pop (aref keys 0))
-            (vector-pop (aref values 0)))))
+    (with-slots (key value)
+        (pstack-pop! pstacks 0)
+      (values key value))))
 
 #+swank (load (merge-pathnames "test/radix-heap.lisp" (uiop:current-lisp-file-pathname)) :if-does-not-exist nil)
 
