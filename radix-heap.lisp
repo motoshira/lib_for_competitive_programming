@@ -27,12 +27,12 @@
 (defstruct (radix-heap (:constructor make-radix-heap ())
                        (:conc-name heap-))
   (keys (make-array #.*buf-size* :element-type 'vector
-                                 :initial-contents (loop repeat *buf-size* collect (make-array #.*initial-stack-size* :fill-pointer 0
+                                 :initial-contents (loop repeat #.*buf-size* collect (make-array #.*initial-stack-size* :fill-pointer 0
                                                                                                                       :element-type 'uint
                                                                                                                       :adjustable t)))
    :type (simple-array vector (#.*buf-size*)))
   (values (make-array #.*buf-size* :element-type 'vector
-                                   :initial-contents  (loop repeat *buf-size* collect (make-array #.*initial-stack-size* :fill-pointer 0
+                                   :initial-contents  (loop repeat #.*buf-size* collect (make-array #.*initial-stack-size* :fill-pointer 0
                                                                                                                          :element-type t
                                                                                                                          :adjustable t)))
    :type (simple-array vector (#.*buf-size*)))
@@ -86,8 +86,6 @@
   #+swank
   (when (empty-p heap)
     (error "Heap is empty."))
-  (princ heap)
-  (terpri)
   (with-slots (keys values size last)
       heap
     (when (zerop (fill-pointer (aref keys 0)))
