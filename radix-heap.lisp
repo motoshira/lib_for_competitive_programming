@@ -35,22 +35,23 @@
   (key 0 :type fixnum)
   (value 0 :type fixnum))
 
-(declaim (inline encode get-cnt pstack-empty-p get-pointer pstack-peak pstack-pop! pstack-push!))
+(declaim (inline encode get-cnt pstack-empty-p get-pointer pstacks-peak pstack-pop! pstack-push!))
 (defun encode (idx cnt)
   (the uint
        (+ (the uint (* idx (the uint *max-stack-size*)))
           (the uint cnt))))
 
-(defun get-cnt (pstack idx)
-  (with-slots (counter) pstack
+(defun get-cnt (pstacks idx)
+  (with-slots (counter) pstacks
     (aref counter idx)))
 
-(defun pstack-empty-p (pstack idx)
-  (zerop (get-cnt pstack idx)))
+(defun pstack-empty-p (pstacks idx)
+  (zerop (get-cnt pstacks idx)))
 
-(defun get-pointer (pstack idx)
-  (let ((cnt (get-cnt pstack idx)))
-    (encode idx cnt)))
+(defun get-pointer (pstacks idx)
+  (let ((cnt (get-cnt pstacks idx)))
+    (when (plusp cnt)
+      (encode idx cnt))))
 
 (defun pstack-peak (pstack idx)
   (with-slots (table) pstack
@@ -60,13 +61,16 @@
 (defun pstack-pop! (pstack idx)
   (with-slots (counter) pstack
     (assert (plusp (aref counter idx)))
+    ;; とってから
     (prog1 (pstack-peak pstack idx)
       (decf (aref counter idx)))))
 
 (defun pstack-push! (pstack idx pair)
   (with-slots (table counter) pstack
+    ;; 上げてから入れる
     (incf (aref counter idx))
     (let* ((pointer (get-pointer pstack idx)))
+      (assert pointer)
       (setf (gethash pointer table) pair))))
 
 (defun clear-pstack (pstacks idx)
@@ -80,8 +84,8 @@
     `(let ((,cnt (get-cnt ,pstack ,idx)))
        (with-slots (table) ,pstack
          (loop for ,i of-type fixnum
-               from (encode ,idx 0)
-                 below (encode ,idx ,cnt)
+               from (encode ,idx 1)
+                 to (encode ,idx ,cnt)
                for ,pair of-type pair = (gethash ,i table)
                do ,@body)))))
 

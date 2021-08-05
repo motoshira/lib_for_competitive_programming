@@ -14,10 +14,29 @@
     (let ((ps (rd::make-pseudo-stacks))
           (xs (list (list 1 4)
                     (list 2 3)))
-          (idx (random 10000)))
+          (idx (random 33)))
+      (ok (null (rd::get-pointer ps idx))
+          "はじめは空")
       (dolist (ys xs)
         (rd::pstack-push! ps idx (rd::make-pair :key (first ys) :value (second ys))))
       (ok (= 2 (rd::get-cnt ps idx)))))
+  (flet ((pair->list (pair)
+           (list (rd::pair-key pair)
+                 (rd::pair-value pair))))
+    (testing "pstack-push!"
+      (let ((ps (rd::make-pseudo-stacks))
+            (xs (list (list 1 4)
+                      (list 2 3)))
+            (idx (random 33)))
+        (ok (null (rd::get-pointer ps idx))
+            "はじめは空")
+        (loop for (key value) in xs do
+          (rd::pstack-push! ps idx (rd::make-pair :key key
+                                                  :value value)))
+        (ok (equal '(2 3) (pair->list (rd::pstack-peak ps idx))))
+        (rd::pstack-pop! ps idx)
+        (ok (equal '(1 4) (pair->list (rd::pstack-peak ps idx))))
+        (rd::pstack-pop! ps idx))))
   #+nil
   (testing "radix-heap"
     (let ((xs (list (list 1 2)
