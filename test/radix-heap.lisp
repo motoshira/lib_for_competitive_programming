@@ -36,7 +36,46 @@
         (ok (equal '(2 3) (pair->list (rd::pstack-peak ps idx))))
         (rd::pstack-pop! ps idx)
         (ok (equal '(1 4) (pair->list (rd::pstack-peak ps idx))))
-        (rd::pstack-pop! ps idx))))
+        (rd::pstack-pop! ps idx)))
+    (testing "pstack-pop!"
+      (let ((ps (rd::make-pseudo-stacks))
+            (xs (list (list 1 4)
+                      (list 2 3)))
+            (idx (random 33)))
+        (ok (null (rd::get-pointer ps idx))
+            "はじめは空")
+        (loop for (key value) in xs do
+          (rd::pstack-push! ps idx (rd::make-pair :key key
+                                                  :value value)))
+        (ok (equal '(2 3) (pair->list (rd::pstack-pop! ps idx))))
+        (ok (equal '(1 4) (pair->list (rd::pstack-peak ps idx))))))
+    (testing "clear-pstack"
+      (let ((ps (rd::make-pseudo-stacks))
+            (xs (list (list 1 4)
+                      (list 2 3)))
+            (idx (random 33)))
+        (loop for (key value) in xs do
+          (rd::pstack-push! ps idx (rd::make-pair :key key
+                                                  :value value)))
+        (ok (= 2 (rd::get-cnt ps idx)))
+        (rd::clear-pstack ps idx)
+        (zerop (rd::get-cnt ps idx))
+        (null (rd::get-pointer ps idx))))
+    (testing "do-pstack"
+      (let ((ps (rd::make-pseudo-stacks))
+            (xs (list (list 1 4)
+                      (list 2 3)))
+            (idx (random 33))
+            (res nil))
+        (loop for (key value) in xs do
+          (rd::pstack-push! ps idx (rd::make-pair :key key
+                                                  :value value)))
+        (rd::do-pstack (pair ps idx)
+          (push (pair->list pair) res))
+        (ok (= 2 (rd::get-cnt ps idx))
+            "pstack内の数は変わらず")
+        (ok (equal '(2 3) (pop res)))
+        (ok (equal '(1 4) (pop res))))))
   #+nil
   (testing "radix-heap"
     (let ((xs (list (list 1 2)
