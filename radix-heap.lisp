@@ -19,10 +19,48 @@
 
 (deftype uint () '(unsigned-byte 32))
 
-(eval-when (:compile-toplevel :load-toplevel)
+(eval-when (:compile-toplevel :load-toplevel :execute)
   (defparameter *buf-size* 33)
   (defparameter *inf* (1- (ash 1 32)))
+  (defparameter *max-stack-size* 1000000)
   (defparameter *initial-stack-size* 1000))
+
+(defstruct pseudo-stacks
+  (table (make-hash-table :test #'eq) :type hash-table)
+  (counter (make-array *buf-size* :element-type 'fixnum
+                                  :initial-element 0)
+   :type (simple-array fixnum (#.*buf-size*))))
+
+(defun encode (idx cnt)
+  (+ (* idx *max-stack-size*)
+     cnt))
+
+(defun get-cnt (pstack idx)
+  (with-slots (counter) pstack
+    (aref counter idx)))
+
+(defun pstack-empty-p (pstack idx)
+  (zerop (get-cnt pstack idx)))
+
+(defun get-pointer (pstack idx)
+  (let ((cnt (get-cnt pstack idx)))
+    (encode idx cnt)))
+
+(defun pstack-peak (pstack idx)
+  (with-slots (table) pstack
+    (gethash (get-pointer pstack idx) table)))
+
+(defun pstack-pop! (pstack idx)
+  (with-slots (counter) pstack
+    (prog1 (pstack-peak pstack idx)
+      ;; remhashしてもいいがタイムロスしそうなので放置
+      (decf (aref counter idx)))))
+
+(defun pstack-push! (pstack idx value)
+  (with-slots (table counter) pstack
+    (let* ((pointer (get-pointer pstack idx)))
+      (setf (gethash pointer table) value)
+      (incf (aref counter idx)))))
 
 (defstruct (radix-heap (:constructor make-radix-heap ())
                        (:conc-name heap-))
