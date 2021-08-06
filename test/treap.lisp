@@ -1,9 +1,11 @@
-(ql:quickload :rove :slient t)
+(ql:quickload '(:rove :sb-sprof) :slient t)
 
 (defpackage :test/treap
   (:use #:cl #:treap)
   (:shadowing-import-from #:treap #:merge #:remove #:first #:last)
-  (:import-from #:rove))
+  (:import-from #:rove)
+  (:export #:run-bench
+           #:run-and-profile))
 
 (in-package :test/treap)
 
@@ -159,5 +161,27 @@
       (rove:ok (= (first xs-tr)
                   1)))))
 
+#+swank
+(defun test-run ()
+  (dotimes (_ 30)
+      (let ((tr nil))
+        (declare ((tr::maybe tr::treap) tr))
+        (dotimes (i 10000)
+          (tr:insert! tr
+                      (random (1+ i))
+                      (random 10000000)))
+        (dotimes (i 10000)
+          (tr:remove! tr 0)))))
+
+#+swank
+(defun run-bench ()
+  (time
+   (test-run)))
+
+#+swank
+(defun run-and-profile ()
+  (sb-sprof:with-profiling (:max-samples 20
+                            :report :flat)
+    (test-run)))
 
 #+swank (rove:run-suite *package*)
