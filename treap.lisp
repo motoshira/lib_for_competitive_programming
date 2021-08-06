@@ -76,7 +76,8 @@
             xs
             :initial-value nil)))
 
-(declaim (inline %get-cnt %plus-cnt))
+#+swank (declaim (notinline %get-cnt %plus-cnt))
+#-swank (declaim (inline %get-cnt %plus-cnt))
 (declaim (ftype (function ((maybe treap)) uint) %get-cnt))
 (defun %get-cnt (treap)
   (declare ((maybe treap) treap))
@@ -96,7 +97,8 @@
        (+ (%get-cnt l)
           (%get-cnt r))))
 
-(declaim (inline %propagate))
+#+swank (declaim (notinline %propagate))
+#-swank (declaim (inline %propagate))
 (defun %propagate (treap)
   ;; 子のcntが正しいことを前提とする
   ;; つまり葉から根へ伝搬すればよい
@@ -290,8 +292,9 @@
   (lambda (treap value) (remove-value treap value))
   "treapをmultisetとみなして値を削除する。insert/remove等と併用不可。O(log(size))")
 
-(declaim (inline first last)
-         (ftype (function ((maybe treap)) fixnum) first last))
+#+swank (declaim (notinline first last))
+#-swank (declaim (inline first last))
+(declaim (ftype (function ((maybe treap)) fixnum) first last))
 (defun first (treap)
   (declare ((maybe treap) treap))
   (ref treap 0))
@@ -340,7 +343,8 @@
                  (values ,treap nil))
            (multiple-value-bind (,c ,r)
                (if ,key-plus-one
-                   (split ,c-r ,key-plus-one)
+                   (split ,c-r (- ,key-plus-one
+                                  ,key))
                    (values ,c-r nil))
              (setf ,treap
                    (merge (merge ,l ,c)
