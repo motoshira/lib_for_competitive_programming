@@ -8,6 +8,8 @@
 ;;    https://www.slideshare.net/iwiwi/2-12188757
 ;;
 ;; TODO:
+;;  - (count-value begin end)
+;;  = count-value 壊れてる？？
 ;;  - range-sum
 ;;  - range-op (RMQ, RUQ等に対応したい)
 
@@ -20,6 +22,8 @@
            #:last)
   (:export #:list->treap
            #:treap->list
+           #:treap
+           #:maybe
            #:merge
            #:split
            #:insert
