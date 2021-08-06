@@ -314,7 +314,8 @@
           (when (>= tr-val value)
             (+ acc
                (%get-cnt left)))
-          (when (>= (treap-value right) value)
+          (when (and right
+                     (>= (treap-value right) value))
             (%upper-bound right value (the uint
                                            (+ acc
                                               (%get-cnt left)
