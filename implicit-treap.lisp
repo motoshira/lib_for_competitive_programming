@@ -80,8 +80,8 @@
             xs
             :initial-value nil)))
 
-#+swank (declaim (notinline %get-cnt %plus-cnt))
-#-swank (declaim (inline %get-cnt %plus-cnt))
+#+swank (declaim (notinline %get-cnt %plus-cnt %update-cnt))
+#-swank (declaim (inline %get-cnt %plus-cnt %update-cnt))
 (declaim (ftype (function ((maybe itreap)) uint) %get-cnt))
 (defun %get-cnt (itreap)
   (declare ((maybe itreap) itreap))
@@ -101,15 +101,21 @@
        (+ (%get-cnt l)
           (%get-cnt r))))
 
-#+swank (declaim (notinline %propagate))
-#-swank (declaim (inline %propagate))
-(defun %propagate (itreap)
+(defun %update-cnt (itreap)
+  (declare ((maybe itreap) itreap))
+  (when itreap
+    (with-slots (left right cnt) itreap
+      (setf (the uint cnt)
+            (the uint
+                 (1+ (%plus-cnt left right)))))))
+
+#+swank (declaim (notinline pushup))
+#-swank (declaim (inline pushup))
+(defun pushup (itreap)
   ;; 子のcntが正しいことを前提とする
   ;; つまり葉から根へ伝搬すればよい
   (declare ((maybe itreap) itreap))
-  (when itreap
-    (with-slots (left right) itreap
-      (setf (itreap-cnt itreap) (1+ (%plus-cnt left right))))))
+  (%update-cnt itreap))
 
 (declaim (ftype (function ((maybe itreap) (maybe itreap)) (maybe itreap)) merge))
 (defun merge (l r)
@@ -129,14 +135,14 @@
      (setf (itreap-right l)
            (merge (itreap-right l)
                   r))
-     (%propagate l)
+     (pushup l)
      l)
     (:else
      ;; rが上
      (setf (itreap-left r)
            (merge l
                   (itreap-left r)))
-     (%propagate r)
+     (pushup r)
      r)))
 
 (declaim (ftype (function ((maybe itreap) uint) (values (maybe itreap) (maybe itreap))) split))
@@ -162,7 +168,7 @@
                 key)
        (declare ((maybe itreap) new-l new-r))
        (setf (itreap-left itreap) new-r)
-       (%propagate itreap)
+       (pushup itreap)
        (values new-l itreap)))
     (:else
      ;; 右
@@ -174,7 +180,7 @@
                         1)))
        (declare ((maybe itreap) new-l new-r))
        (setf (itreap-right itreap) new-l)
-       (%propagate itreap)
+       (pushup itreap)
        (values itreap new-r)))))
 
 #+swank
