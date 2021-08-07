@@ -91,7 +91,11 @@
       (ok (equal '(10 10 2 7 7) (itreap->list xs-tr)))
       (setf xs-tr (range-update xs-tr 0 4 0))
       (ok (equal '(0 0 0 0 7) (itreap->list xs-tr))
-          "updateの範囲が被ってもOK"))))
+          "updateの範囲が被ってもOK")
+      (remove! xs-tr 0)
+      (ok (= 4 (get-size xs-tr))
+          "cntが更新できている")
+      (ok (equal '(0 0 0 7) (itreap->list xs-tr))))))
 
 #+swank
 (defun test-run ()
