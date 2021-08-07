@@ -100,14 +100,14 @@
 #+swank
 (defun test-run ()
   (dotimes (_ 30)
-      (let ((tr nil))
-        (declare ((maybe itreap) tr))
+      (let ((itr nil))
+        (declare ((maybe itreap) itr))
         (dotimes (i 10000)
-          (insert! tr
-                      (random (1+ i))
-                      (random 10000000)))
+          (insert! itr
+                   (random (1+ i))
+                   (random 10000000)))
         (dotimes (i 10000)
-          (remove! tr 0)))))
+          (remove! itr 0)))))
 
 #+swank
 (defun run-bench ()

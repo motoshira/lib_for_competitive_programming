@@ -23,6 +23,7 @@
            #:itreap->list
            #:implicit-treap
            #:maybe
+           #:itreap
            #:merge
            #:split
            #:insert
@@ -42,12 +43,13 @@
 
 (deftype maybe (type) `(or null ,type))
 
-(defstruct (implicit-treap (:constructor make-itreap (value &key (left nil) (right nil) (cnt 1) (update-lazy 0) (is-ulazy nil)))
+(defstruct (implicit-treap (:constructor make-itreap (value &key (left nil) (right nil) (cnt 1) (update-lazy 0) (acc 0) (is-ulazy nil)))
                            (:conc-name itreap-))
   (left nil :type (or null implicit-treap))
   (right nil :type (or null implicit-treap))
   (value value :type fixnum)
   (update-lazy update-lazy :type fixnum)
+  (acc acc :type fixnum)
   (is-ulazy is-ulazy :type boolean)
   (priority (random #.most-positive-fixnum) :type uint)  ;; 勝手に決まる
   (cnt cnt :type uint))
@@ -281,7 +283,7 @@
       (merge l (merge c r)))))
 
 
-(define-modify-macro insert! (key value) (lambda (itreap key value) (insert treap key value)) "keyの位置にvalueを挿入する。O(log(size))")
+(define-modify-macro insert! (key value) (lambda (itreap key value) (insert itreap key value)) "keyの位置にvalueを挿入する。O(log(size))")
 (define-modify-macro remove! (key) (lambda (itreap key) (remove itreap key)) "keyを削除する。O(log(size))")
 (define-modify-macro update! (key value) (lambda (itreap key value) (update itreap key value)) "keyの位置の値をvalueで更新する。O(log(size))")
 
