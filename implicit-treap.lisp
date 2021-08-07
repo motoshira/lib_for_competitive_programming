@@ -33,6 +33,7 @@
            #:update!
            #:ref
            #:get-size
+           #:range-update
            #:fold))
 
 (in-package  #:implicit-treap)
@@ -264,6 +265,10 @@
   (insert (remove itreap key)
           key
           value))
+
+(defun range-update (itreap begin end value)
+  (declare (ignorable itreap begin end value)))
+
 
 (define-modify-macro insert! (key value) (lambda (itreap key value) (insert treap key value)) "keyの位置にvalueを挿入する。O(log(size))")
 (define-modify-macro remove! (key) (lambda (itreap key) (remove itreap key)) "keyを削除する。O(log(size))")
