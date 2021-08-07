@@ -4,12 +4,13 @@
 
 ;; Implicit Treap
 ;; Reference:
-;;  「プログラミングコンテストでのデータ構造 2　～平衡二分探索木編～」
-;;    https://www.slideshare.net/iwiwi/2-12188757
+;;  - 「Implicit Treap - 競プロ練習日記」
+;;     https://xuzijian629.hatenablog.com/entry/2018/12/08/000452
 ;;
-;; TODO:
-;;  - range-op (RMQ, RUQ等に対応したい)
-;;  - range-sum (range-opがあればいらなさそう)
+;;  - 「プログラミングコンテストでのデータ構造 2　～平衡二分探索木編～」
+;;     https://www.slideshare.net/iwiwi/2-12188757
+;;
+;; TODO
 ;;  - embed type(value op acc)
 
 (defpackage #:implicit-treap
