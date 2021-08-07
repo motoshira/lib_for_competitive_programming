@@ -8,9 +8,9 @@
 ;;    https://www.slideshare.net/iwiwi/2-12188757
 ;;
 ;; TODO:
-;;  - range-update
 ;;  - range-op (RMQ, RUQ等に対応したい)
 ;;  - range-sum (range-opがあればいらなさそう)
+;;  - embed type(value op acc)
 
 (defpackage #:implicit-treap
   (:use #:cl)
@@ -42,6 +42,9 @@
 (deftype uint () '(integer 0 #.most-positive-fixnum))
 
 (deftype maybe (type) `(or null ,type))
+
+;; まずはsum専用として作る
+;; TODO 抽象化
 
 (defstruct (implicit-treap (:constructor make-itreap (value &key (left nil) (right nil) (cnt 1) (update-lazy 0) (acc 0) (is-ulazy nil)))
                            (:conc-name itreap-))
