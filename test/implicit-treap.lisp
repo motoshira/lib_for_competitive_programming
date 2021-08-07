@@ -101,12 +101,12 @@
            (xs-tr (list->itreap xs)))
       (ok (= 15 (fold xs-tr 0 5)))
       (setf xs-tr (range-update xs-tr 0 2 10))
-      (ok (= 9 (fold xs=tr 0 5)))
+      (ok (= 9 (fold xs-tr 0 5)))
       (setf xs-tr (range-update xs-tr 3 5 1))
       (setf xs-tr (range-update xs-tr 1 5 0))
-      (ok (= 10 (fold xs=tr 0 5)))
+      (ok (= 10 (fold xs-tr 0 5)))
       (insert! xs-tr 10 0)
-      (ok (= 20 (fold xs=tr 0 6))))))
+      (ok (= 20 (fold xs-tr 0 6))))))
 
 #+swank
 (defun test-run ()

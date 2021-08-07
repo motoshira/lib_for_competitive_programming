@@ -285,6 +285,11 @@
             (itreap-is-ulazy c) t)
       (merge l (merge c r)))))
 
+(defmacro fold (itreap begin end)
+  `(%fold ,itreap ,begin ,end))
+
+(defun %fold (itreap begln end)
+  0)
 
 (define-modify-macro insert! (key value) (lambda (itreap key value) (insert itreap key value)) "keyの位置にvalueを挿入する。O(log(size))")
 (define-modify-macro remove! (key) (lambda (itreap key) (remove itreap key)) "keyを削除する。O(log(size))")
