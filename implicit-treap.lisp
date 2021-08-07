@@ -57,13 +57,20 @@
 (defun itreap->list (itreap)
   "itreapをlistに変換する。デバッグ用。O(n)"
   (let ((res nil))
-    (labels ((%traverse (node)
+    (labels ((%propagate-all (node)
+               (when node
+                 (push-down node)
+                 (%propagate-all (itreap-left node))
+                 (%propagate-all (itreap-right node))
+                 (pushup node)))
+             (%traverse (node)
                ;; 再帰的にpush
                (when node
                  (%traverse (itreap-left node))
                  (push (itreap-value node)
                        res)
                  (%traverse (itreap-right node)))))
+      (%propagate-all itreap)
       (%traverse itreap)
       (reverse res))))
 
@@ -122,17 +129,17 @@
 (defun push-down (itreap)
   (declare ((maybe itreap)))
   (when itreap
-    (with-slots (left right update-lazy is-ulazy) itreap
+    (with-slots (value left right update-lazy is-ulazy) itreap
       (cond
         (is-ulazy
          ;; updateなのでほかはoverwriteする
          ;; TODO op-lazyもoverwrite
          (when left
-           (setf (treap-update-lazy left) update-lazy
-                 (treap-is-ulazy left) t))
+           (setf (itreap-update-lazy left) update-lazy
+                 (itreap-is-ulazy left) t))
          (when right
-           (setf (treap-update-lazy right) update-lazy
-                 (treap-is-ulazy right) t))
+           (setf (itreap-update-lazy right) update-lazy
+                 (itreap-is-ulazy right) t))
          ;; propagateし終わったので自分を更新して終わり
          (setf value update-lazy
                is-ulazy nil))))))
@@ -267,7 +274,11 @@
           value))
 
 (defun range-update (itreap begin end value)
-  (declare (ignorable itreap begin end value)))
+  (multiple-value-bind (l c-r) (split itreap begin)
+    (multiple-value-bind (c r) (split c-r (- end begin))
+      (setf (itreap-update-lazy c) value
+            (itreap-is-ulazy c) t)
+      (merge l (merge c r)))))
 
 
 (define-modify-macro insert! (key value) (lambda (itreap key value) (insert treap key value)) "keyの位置にvalueを挿入する。O(log(size))")
