@@ -46,6 +46,20 @@
 ;; まずはsum専用として作る
 ;; TODO 抽象化
 
+(defconstant +op-identity+ 0)
+(defconstant +update-identity+ 0)
+
+(defun op (x y) (+ x y))
+
+(defun updater (now lazy)
+  (declare (ignore now))
+  lazy)
+
+(defun modifier (acc update-lazy is-lazy size)
+  (if is-lazy
+      (* update-lazy size)
+      acc))
+
 (defstruct (implicit-treap (:constructor make-itreap (value &key (left nil) (right nil) (cnt 1) (update-lazy 0) (acc 0) (is-ulazy nil)))
                            (:conc-name itreap-))
   (left nil :type (or null implicit-treap))
