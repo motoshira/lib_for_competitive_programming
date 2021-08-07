@@ -81,7 +81,17 @@
       (rove:ok (equal (itreap->list xs-tr) xs))
       (rove:ok (= (ref xs-tr 1)
                   4))
-      (rove:ok (equal (itreap->list xs-tr) xs)))))
+      (rove:ok (equal (itreap->list xs-tr) xs))))
+  (testing "range-update"
+    (let* ((xs (list 1 5 2 4 3))
+           (xs-tr (list->itreap xs)))
+      (setf xs-tr (range-update xs-tr 0 2 10))
+      (ok (equal '(10 10 2 4 3) (itreap->list xs-tr)))
+      (setf xs-tr (range-update xs-tr 3 5 7))
+      (ok (equal '(10 10 2 7 7) (itreap->list xs-tr)))
+      (setf xs-tr (range-update xs-tr 0 4 0))
+      (ok (equal '(0 0 0 0 7) (itreap->list xs-tr))
+          "updateの範囲が被ってもOK"))))
 
 #+swank
 (defun test-run ()
