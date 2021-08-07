@@ -143,6 +143,8 @@
   ;; mergeから返ってくるtreapはpropagated
   (declare ((maybe itreap) l r)
            (optimize (speed 3)))
+  (push-down l)
+  (push-down r)
   (when (or (null l)
             (null r))
     (return-from merge (the (maybe itreap)
@@ -177,6 +179,7 @@
   (declare #+nil (optimize (speed 3))
            ((maybe itreap) itreap)
            (uint key))
+  (push-down itreap)
   (when (null itreap)
     (return-from split (values nil nil)))
   (cond
@@ -226,7 +229,8 @@
 (defun insert (itreap key value)
   "keyの位置にvalueを挿入する。O(log(size))"
   (declare ((maybe itreap) itreap)
-           (fixnum key value))
+           (uint key)
+           (Fixnum value))
   (multiple-value-bind (l r)
       (split itreap key)
     (declare ((maybe itreap) l r))
