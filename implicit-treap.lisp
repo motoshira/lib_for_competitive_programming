@@ -171,16 +171,16 @@
         ;; updateなのでほかはoverwriteする
         ;; TODO op-lazyもoverwrite
         (when left
-          (setf (itreap-update-lazy left) (op (itreap-update-lazy left)
-                                              update-lazy)
+          (setf (itreap-update-lazy left) (updater (itreap-update-lazy left)
+                                                   update-lazy)
                 (itreap-is-ulazy left) t
                 (itreap-acc left) (modifier (itreap-acc left)
                                             update-lazy
                                             (itreap-is-ulazy left)
                                             (itreap-cnt left))))
         (when right
-          (setf (itreap-update-lazy right) (op (itreap-update-lazy right)
-                                               update-lazy)
+          (setf (itreap-update-lazy right) (updater (itreap-update-lazy right)
+                                                    update-lazy)
                 (itreap-is-ulazy right) t
                 (itreap-acc right) (modifier (itreap-acc right)
                                              update-lazy
@@ -305,6 +305,7 @@
   (multiple-value-bind (l c-r)
       (split itreap key)
     (declare ((maybe itreap) l c-r))
+
     (multiple-value-bind (c r)
         (split c-r 1)
       (declare ((maybe itreap) c r))
@@ -324,8 +325,8 @@
 (defun range-update (itreap begin end value)
   (multiple-value-bind (l c-r) (split itreap begin)
     (multiple-value-bind (c r) (split c-r (- end begin))
-      (setf (itreap-update-lazy c) (op (itreap-update-lazy c)
-                                       value)
+      (setf (itreap-update-lazy c) (updater (itreap-update-lazy c)
+                                            value)
             (itreap-is-ulazy c) t
             (itreap-acc c) (modifier (itreap-acc c)
                                      value
