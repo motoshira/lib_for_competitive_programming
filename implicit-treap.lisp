@@ -60,7 +60,7 @@
       (* update-lazy size)
       acc))
 
-(defstruct (implicit-treap (:constructor make-itreap (value &key (left nil) (right nil) (cnt 1) (update-lazy 0) (acc 0) (is-ulazy nil)))
+(defstruct (implicit-treap (:constructor make-itreap (value &key (left nil) (right nil) (cnt 1) (update-lazy +update-identity+) (acc +op-identity+) (is-ulazy nil)))
                            (:conc-name itreap-))
   (left nil :type (or null implicit-treap))
   (right nil :type (or null implicit-treap))
@@ -117,6 +117,14 @@
            0
            (itreap-cnt itreap))))
 
+(declaim (#+swank notinline #-swank inline %get-acc))
+(defun %get-acc (itreap)
+  (declare ((maybe itreap) itreap))
+  (the uint
+       (if (null itreap)
+           +op-identity+
+           (itreap-acc itreap))))
+
 (declaim (inline get-size))
 (defun get-size (itreap)
   (%get-cnt itreap))
@@ -136,32 +144,53 @@
             (the uint
                  (1+ (%plus-cnt left right)))))))
 
+(defun %update-acc (itreap)
+  (declare ((maybe itreap) itreap))
+  (when itreap
+    (with-slots (value left right acc) itreap
+      (setf (the uint acc)
+            (the uint
+                 (op (%get-acc left)
+                     (op value (%get-acc right))))))))
+
 #+swank (declaim (notinline pushup))
 #-swank (declaim (inline pushup))
 (defun pushup (itreap)
   ;; 子のcntが正しいことを前提とする
   ;; つまり葉から根へ伝搬すればよい
   (declare ((maybe itreap) itreap))
-  (%update-cnt itreap))
+  (%update-cnt itreap)
+  (%update-acc itreap))
 
 (declaim (#+swank notinline #-swank inline push-down))
 (defun push-down (itreap)
   (declare ((maybe itreap)))
   (when itreap
     (with-slots (value left right update-lazy is-ulazy) itreap
-      (cond
-        (is-ulazy
-         ;; updateなのでほかはoverwriteする
-         ;; TODO op-lazyもoverwrite
-         (when left
-           (setf (itreap-update-lazy left) update-lazy
-                 (itreap-is-ulazy left) t))
-         (when right
-           (setf (itreap-update-lazy right) update-lazy
-                 (itreap-is-ulazy right) t))
-         ;; propagateし終わったので自分を更新して終わり
-         (setf value update-lazy
-               is-ulazy nil))))))
+      (when is-ulazy
+        ;; updateなのでほかはoverwriteする
+        ;; TODO op-lazyもoverwrite
+        (when left
+          (setf (itreap-update-lazy left) (op (itreap-update-lazy left)
+                                              update-lazy)
+                (itreap-is-ulazy left) t
+                (itreap-acc left) (modifier (itreap-acc left)
+                                            update-lazy
+                                            (itreap-is-ulazy left)
+                                            (itreap-cnt left))))
+        (when right
+          (setf (itreap-update-lazy right) (op (itreap-update-lazy right)
+                                               update-lazy)
+                (itreap-is-ulazy right) t
+                (itreap-acc right) (modifier (itreap-acc right)
+                                             update-lazy
+                                             (itreap-is-ulazy right)
+                                             (itreap-cnt right))))
+        ;; propagateし終わったので自分を更新して終わり
+        (setf value (modifier value update-lazy is-ulazy 1)
+              update-lazy +op-identity+
+              is-ulazy nil)))
+    (pushup itreap)))
 
 (declaim (ftype (function ((maybe itreap) (maybe itreap)) (maybe itreap)) merge))
 (defun merge (l r)
@@ -295,8 +324,13 @@
 (defun range-update (itreap begin end value)
   (multiple-value-bind (l c-r) (split itreap begin)
     (multiple-value-bind (c r) (split c-r (- end begin))
-      (setf (itreap-update-lazy c) value
-            (itreap-is-ulazy c) t)
+      (setf (itreap-update-lazy c) (op (itreap-update-lazy c)
+                                       value)
+            (itreap-is-ulazy c) t
+            (itreap-acc c) (modifier (itreap-acc c)
+                                     value
+                                     (itreap-is-ulazy c)
+                                     (%get-cnt c)))
       (merge l (merge c r)))))
 
 (defmacro fold (itreap begin end)
