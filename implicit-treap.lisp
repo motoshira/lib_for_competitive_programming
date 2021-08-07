@@ -41,13 +41,13 @@
 
 (deftype maybe (type) `(or null ,type))
 
-(defstruct (implicit-treap (:constructor make-itreap (value &key (left nil) (right nil) (cnt 1) (update-lazy 0) (is-lazy nil)))
+(defstruct (implicit-treap (:constructor make-itreap (value &key (left nil) (right nil) (cnt 1) (update-lazy 0) (is-ulazy nil)))
                            (:conc-name itreap-))
   (left nil :type (or null implicit-treap))
   (right nil :type (or null implicit-treap))
   (value value :type fixnum)
   (update-lazy update-lazy :type fixnum)
-  (is-lazy is-lazy :type boolean)
+  (is-ulazy is-ulazy :type boolean)
   (priority (random #.most-positive-fixnum) :type uint)  ;; 勝手に決まる
   (cnt cnt :type uint))
 
@@ -116,6 +116,25 @@
   ;; つまり葉から根へ伝搬すればよい
   (declare ((maybe itreap) itreap))
   (%update-cnt itreap))
+
+(declaim (#+swank notinline #-swank inline push-down))
+(defun push-down (itreap)
+  (declare ((maybe itreap)))
+  (when itreap
+    (with-slots (left right update-lazy is-ulazy) itreap
+      (cond
+        (is-ulazy
+         ;; updateなのでほかはoverwriteする
+         ;; TODO op-lazyもoverwrite
+         (when left
+           (setf (treap-update-lazy left) update-lazy
+                 (treap-is-ulazy left) t))
+         (when right
+           (setf (treap-update-lazy right) update-lazy
+                 (treap-is-ulazy right) t))
+         ;; propagateし終わったので自分を更新して終わり
+         (setf value update-lazy
+               is-ulazy nil))))))
 
 (declaim (ftype (function ((maybe itreap) (maybe itreap)) (maybe itreap)) merge))
 (defun merge (l r)
