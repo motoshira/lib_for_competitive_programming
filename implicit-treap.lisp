@@ -286,10 +286,18 @@
       (merge l (merge c r)))))
 
 (defmacro fold (itreap begin end)
-  `(%fold ,itreap ,begin ,end))
+  (let ((res (gensym))
+        (intact (gensym)))
+    `(multiple-value-bind (,res ,intact) (%fold ,itreap ,begin ,end)
+       (prog1 ,res
+         (setf ,itreap ,intact)))))
 
-(defun %fold (itreap begln end)
-  0)
+(defun %fold (itreap begin end)
+  ;; (values res itreap)
+  (multiple-value-bind (l c-r) (split itreap begin)
+    (multiple-value-bind (c r) (split c-r (- end begin))
+      ;; splitからかえってくる値は伝搬済みのはず
+      (values (itreap-acc c) (merge l (merge c r))))))
 
 (define-modify-macro insert! (key value) (lambda (itreap key value) (insert itreap key value)) "keyの位置にvalueを挿入する。O(log(size))")
 (define-modify-macro remove! (key) (lambda (itreap key) (remove itreap key)) "keyを削除する。O(log(size))")
