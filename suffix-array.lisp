@@ -1,8 +1,9 @@
 (defpackage suffix-array
   (:use #:cl)
-  (:nicknames #:sa))
+  (:nicknames #:sa)
+  (:shadow #:find))
 
-(in-package #:cl-user)
+(in-package #:suffix-array)
 
 (deftype signed-int () '(signed-byte 64))
 (deftype uint () '(unsigned-byte 32))
@@ -73,3 +74,29 @@
                                                    dd))))
                  (setf rank rank-next))
         sa))))
+
+(defun find (main-string sub-string &optional (main-sa (make-suffix-array main-string)))
+  "Returns T is main-string contains sub-string as substring."
+  (declare (string main-string sub-string)
+           (suffix-array main-sa))
+  (with-slots ((sa-arr data)) main-sa
+    (let ((ok 0)
+          (ng (length main-string))
+          (m (length sub-string))
+          (main-string (coerce main-string 'simple-base-string))
+          (sub-string (coerce sub-string 'simple-base-string)))
+      (declare (uint ok ng)
+               (simple-base-string main-string sub-string))
+      (loop while (> (abs (- ok ng)) 1)
+            for mid of-type uint = (ash (+ ok ng) -1)
+            for start of-type signed-int = (aref sa-arr mid)
+            do (cond
+                 ((string< main-string sub-string :start1 start
+                                                  :end1 (the uint (+ start m)))
+                  (setf (the uint ok) mid))
+                 (:else
+                  (setf (the uint ng) mid)))
+               (let ((start (aref sa-arr (the uint (1+ ok)))))
+                 (declare (uint start))
+                 (string= main-string sub-string :start1 start
+                                                 :end1 (the uint (+ start m))))))))
