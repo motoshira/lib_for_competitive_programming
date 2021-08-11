@@ -1,7 +1,9 @@
 (defpackage suffix-array
   (:use #:cl)
   (:nicknames #:sa)
-  (:shadow #:find))
+  (:shadow #:find)
+  (:export #:make-suffix-array
+           #:find))
 
 (in-package #:suffix-array)
 
@@ -44,9 +46,9 @@
   (declare (string string))
   (let* ((string (coerce string 'simple-base-string))
          (n (length string))
-         (sa (%make-sa (the %signed-int (1+ n))))
-         (rank (%make-rank (the %signed-int (1+ n))))
-         (rank-next (%make-rank (the %signed-int (1+ n)))))
+         (sa (%make-sa (the %unsigned-int (1+ n))))
+         (rank (%make-rank (the %unsigned-int (1+ n))))
+         (rank-next (%make-rank (the %unsigned-int (1+ n)))))
     (declare (%unsigned-int n)
              (simple-base-string string)
              (suffix-array sa)
@@ -70,9 +72,10 @@
                                                 1
                                                 0)
                        do (setf (aref rank-next dist)
-                                (the %signed-int (+ (aref rank now)
+                                (the %signed-int (+ (aref rank-next now)
                                                    dd))))
-                 (setf rank rank-next))
+                 (setf rank rank-next)
+                 (setf len (ash len 1)))
         sa))))
 
 (defun find (main-string sub-string &optional (main-sa (make-suffix-array main-string)))
@@ -95,8 +98,8 @@
                                                   :end1 (the %unsigned-int (+ start m)))
                   (setf (the %unsigned-int ok) mid))
                  (:else
-                  (setf (the %unsigned-int ng) mid)))
-               (let ((start (aref sa-arr (the %unsigned-int (1+ ok)))))
-                 (declare (%unsigned-int start))
-                 (string= main-string sub-string :start1 start
-                                                 :end1 (the %unsigned-int (+ start m))))))))
+                  (setf (the %unsigned-int ng) mid))))
+      (let ((start (aref sa-arr (the %unsigned-int (1+ ok)))))
+        (declare (%unsigned-int start))
+        (string= main-string sub-string :start1 start
+                                        :end1 (the %unsigned-int (+ start m)))))))
