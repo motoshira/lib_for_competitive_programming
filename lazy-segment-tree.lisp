@@ -14,22 +14,31 @@
     (name nil :type symbol)
     (doc nil :type (or null string)))
 
-  (defun %get-template (name)
-    (let ((template-form (gethash name *templates*)))
+  (defun %get-template (template-name)
+    (let ((template-form (gethash template-name *templates*)))
       (unless template-form
-        (error "Template name ~a not found." name))
+        (error "Template name ~a not found." template-name))
       template-form))
 
-  (defun %add-template! (name form &key doc)
-    (when (gethash name *templates*)
-      (warn "Redefing template: ~a" name))
-    (setf (gethash name *templates*)
-          (make-template-form :form form
-                              :name name
-                              :doc doc))))
+  (defun %add-form-to-template! (template-name name form &key doc)
+    (when (gethash template-name *templates*)
+      (warn "Redefing templat e: ~a" template-name))
+    (pushnew (make-template-form :form form
+                                 :name name
+                                 :doc doc)
+             (gethash template-name *templates*)
+             :test #'equalp))
 
-(defmacro add-template! (name form &key doc)
-  `(%add-template! ',name ',form :doc ,doc))
+  (defun %eval-template! (template-name)
+    (dolist (template-form (gethash template-name *templates*))
+      (format *error-output* "Evaluating form: ~a" (template-form-name template-form))
+      (eval (template-form-form template-form)))))
+
+(defmacro add-form-to-template! ((template-name name) form &key doc)
+  `(%add-form-to-template! ',template-name ',name ',form :doc ,doc))
+
+(defmacro eval-template! (template-name)
+  `(%eval-template! ,template-name))
 
 #+nil
 (deftemplate define-lseg (&key element-type result-type (key-element 'list)))
