@@ -23,7 +23,7 @@
   (%def floor cl:floor fixnum)
   (%def <= cl:<= boolean))
 
-(defstruct functions
+(defstruct operations
   (op nil :type (function (fixnum fixnum) fixnum))
   (updater nil :type (function (fixnum fixnum) fixnum))
   (op-identity nil :type fixnum))
@@ -34,15 +34,12 @@
   (acc nil :type (or null ))
   (l nil)
   (r nil)
-  (size nil :type fixnum)
-  (op nil :type (function (fixnum fixnum) fixnum))
-  (op-identity nil :type fixnum)
-  (updater nil :type (function (fixnum fixnum) fixnum)))
+  (size nil :type fixnum))
 
 (defstruct (square-root-decomp (:constructor %make-square-root-decomp)
                                (:conc-name sd-))
   (buckets nil :type (simple-array bucket 1))
-  (op nil :type (function (fixnum fixnum) fixnum))
+  (operations nil :type operations)
   (total-size nil :type fixnum)
   (bucket0-size nil :type fixnum))
 
@@ -97,7 +94,6 @@
 (defun update! (sd l r val)
   (loop for bucket across (sd-buckets sd)
         do (%update! bucket l r val)))
-
 
 (defun fold (sd l r)
   (reduce (lambda (acc bucket)
