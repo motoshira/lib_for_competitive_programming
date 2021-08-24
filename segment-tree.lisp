@@ -45,8 +45,8 @@
          (declare (,struct-name seg)
                   (fixnum l r))
          (with-slots (m data) seg
-           (let ((l (+ l (,(symb (symbol-name struct-name) "-m") seg)))
-                 (r (+ r (,(symb (symbol-name struct-name) "-m") seg))))
+           (let ((l (+ l m))
+                 (r (+ r m)))
              (declare (fixnum l r))
              (loop while (< l r)
                    with res of-type ,result-type = ,e
