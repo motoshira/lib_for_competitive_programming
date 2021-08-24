@@ -16,6 +16,7 @@
          (conc-name (symb name-str "-"))
          (constructor (symb "%make-" name-str))
          (make-seg (symb "make-" name-str))
+         (seg-ref (symb name-str "-ref"))
          (seg-fold (symb name-str "-fold"))
          (seg-update (symb name-str "-update")))
     `(progn
@@ -40,6 +41,13 @@
                                                                          :element-type ',element-type
                                                                          :adjustable nil
                                                                          :initial-element ,e))))
+
+       (defun ,seg-ref (seg idx)
+         (declare (,struct-name seg)
+                  (fixnum idx))
+         (with-slots (data m) seg
+           (aref data (the fixnum
+                           (+ idx m)))))
 
        (defun ,seg-fold (seg l r)
          (declare (,struct-name seg)
