@@ -51,7 +51,7 @@
              (loop while (< l r)
                    with res of-type ,result-type = ,e
                    when (logbitp 0 l)
-                     do (setf res (,fn res (aref data l)))
+                     do (setf res (,fn (aref data l) res))
                      and do (incf l)
                    when (logbitp 0 r)
                      do (setf res (,fn res (aref data (1- r))))
