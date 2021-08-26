@@ -71,3 +71,5 @@
                  (if (eq p-dir pp-dir)
                      (zig-zig! node parent pp p-dir)
                      (zig-zag! node parent pp p-dir))))))
+
+#+swank (load (merge-pathnames "test/splay-tree.lisp" (uiop:current-lisp-file-pathname)) :if-does-not-exist nil)

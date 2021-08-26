@@ -9,3 +9,9 @@
                 #:ok))
 
 (in-package #:test/splay-tree)
+
+(deftest splay-tree-test
+  (testing "pass"
+    (ok t)))
+
+(rove:run-suite *package*)
