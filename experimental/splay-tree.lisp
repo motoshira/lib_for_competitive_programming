@@ -33,6 +33,28 @@
 (defun push! (stack value)
   (push value (stack-data stack)))
 
+
+(defun dump (node)
+  (let ((res nil))
+    (labels ((traverse (node)
+               (when node
+                 (traverse (node-l node))
+                 (push (node-value node)
+                       res)
+                 (traverse (node-r node)))))
+      (traverse node)
+      (reverse res))))
+
+(defun build (sequence)
+  (let ((res nil))
+    (map nil
+         (lambda (x)
+           (setf res
+                 (%make-node :value x
+                             :l res)))
+         sequence)
+    res))
+
 (defun zig! (node parent p-dir)
   (ecase p-dir
     (:left (setf (node-l parent) (node-r node)
