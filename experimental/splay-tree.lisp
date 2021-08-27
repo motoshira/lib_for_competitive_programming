@@ -1,22 +1,15 @@
 (defpackage #:splay-tree
   (:use #:cl)
-  (:nicknames #:sp))
+  (:nicknames #:sp)
+  (:shadow #:merge))
 
 (in-package #:splay-tree)
 
 (defstruct (node (:constructor %make-node))
   (value 0 :type fixnum)
+  (cnt 0 :type fixnum)
   (l nil :type (or null node))
   (r nil :type (or null node)))
-
-(defstruct path
-  (parent nil :type node)
-  (p-dir nil :type (member :left :right))
-  (pp nil :type (or null node))
-  (pp-dir nil :type (or null (member :left :right))))
-
-(defun parent-root-p (path)
-  (null (path-pp path)))
 
 (defstruct stack
   (data nil :type list))
@@ -32,7 +25,6 @@
 
 (defun push! (stack value)
   (push value (stack-data stack)))
-
 
 (defun dump (node)
   (let ((res nil))
@@ -86,12 +78,67 @@
 
 (defun splay! (node stack)
   (loop until (stack-empty-p stack)
-        for path of-type path = (pop! stack)
-        do (with-slots (parent p-dir pp pp-dir) path
-             (if (parent-root-p path)
-                 (zig! node parent p-dir)
-                 (if (eq p-dir pp-dir)
-                     (zig-zig! node parent pp p-dir)
-                     (zig-zag! node parent pp p-dir))))))
+        for (p p-dir) = (pop! stack)
+        for (pp pp-dir) = (if stack
+                              (pop! stack)
+                              (list nil nil))
+        do (if (null pp)
+               (zig! node p p-dir)
+               (if (eq p-dir pp-dir)
+                   (zig-zig! node p pp p-dir)
+                   (zig-zag! node p pp p-dir)))))
+
+(defun %get-cnt (node)
+  (if (null node)
+      0
+      (node-cnt node)))
+
+(defun %update-cnt (node)
+  (setf (node-cnt node)
+        (+ 1
+           (%get-cnt (node-l node))
+           (%get-cnt (Node-r node)))))
+
+(defun %push-up (node)
+  (%update-cnt node))
+
+(defun %find (node index stack)
+  (when (null node)
+    (return-from %find (values nil nil)))
+  (%push-up node)
+  (let ((cnt (%get-cnt (node-l node))))
+    (cond
+      ((= cnt index)
+       (values node stack))
+      ((< cnt index)
+       (%find (node-l node)
+              index
+              (cons (list node :left)
+                    stack)))
+      (t
+       (%find (node-r node)
+              (- index cnt 1)
+              (cons (list node :right)
+                    stack))))))
+
+(defun split (node index)
+  (multiple-value-bind (target stack)
+      (%find node index nil)
+    (unless target
+      (return-from split (values nil nil)))
+    (splay! target stack)
+    (let ((l (node-l target)))
+      (setf (node-l target) nil)
+      (values l target))))
+
+(defun merge (l r)
+  (multiple-value-bind (leftist stack)
+      (%find l 0 nil)
+    (unless leftist
+      (return-from merge (values nil nil)))
+    (splay! leftist stack)
+    (assert (null (node-r leftist)))
+    (setf (node-r leftist) r)
+    leftist))
 
 #+swank (load (merge-pathnames "test/splay-tree.lisp" (uiop:current-lisp-file-pathname)) :if-does-not-exist nil)
