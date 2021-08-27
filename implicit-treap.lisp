@@ -46,13 +46,14 @@
 
 ;; まずはsum専用として作る
 ;; TODO 抽象化
+;; TODO insert/remove が異常に遅い気がする
 
 (defconstant +op-identity+ 0)
 (defconstant +update-identity+ 0)
 
 (defun op (x y) (+ x y))
 
-(defun updater (now lazy)
+(defun pdater (now lazy)
   (declare (ignore now))
   lazy)
 
@@ -287,7 +288,7 @@
   "keyの位置にvalueを挿入する。O(log(size))"
   (declare ((maybe itreap) itreap)
            (uint key)
-           (Fixnum value))
+           (fixnum value))
   (multiple-value-bind (l r)
       (split itreap key)
     (declare ((maybe itreap) l r))
