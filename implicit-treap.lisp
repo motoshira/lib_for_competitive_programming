@@ -307,7 +307,6 @@
   (multiple-value-bind (l c-r)
       (split itreap key)
     (declare ((maybe itreap) l c-r))
-
     (multiple-value-bind (c r)
         (split c-r 1)
       (declare ((maybe itreap) c r))
