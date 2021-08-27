@@ -110,23 +110,27 @@
       (ok (= 60 (fold xs-tr 0 6))))))
 
 #+swank
-(defun test-run (itreap)
-  (let ((itr nil))
-    (declare ((maybe itreap) itr))
-    (dotimes (i (get-size itreap))
-      (multiple-value-bind (l r) (split itreap 0)
-        (setf itr (merge itr l)
-              itreap r)))))
+(defun test-run (itreap count)
+  (declare ((maybe itreap) itreap))
+  (let ((m (get-size itreap)))
+    (dotimes (_ count)
+      (dotimes (l m)
+        (dotimes (r (- m l))
+          (when (< l r)
+            (range-update itreap l r (random 10000))
+            (fold itreap
+                  l
+                  r)))))))
 
 #+swank
-(defun run-bench (itreap)
+(defun run-bench (itreap count)
   (time
-   (test-run itreap)))
+   (test-run itreap count)))
 
 #+swank
 (defun run-and-profile (itreap)
   (sb-sprof:with-profiling (:max-samples 100
                             :report :flat)
-    (test-run itreap)))
+    (test-run itreap 1000)))
 
 #+swank (rove:run-suite *package*)

@@ -53,7 +53,7 @@
 
 (defun op (x y) (+ x y))
 
-(defun pdater (now lazy)
+(defun updater (now lazy)
   (declare (ignore now))
   lazy)
 
@@ -103,11 +103,11 @@
 
 (defun list->itreap (list)
   "listをitreapに変換する。デバッグ用。O(n)"
-  (let ((xs (copy-seq list)))
-    (reduce (lambda (itreap x)
-              (merge itreap (make-itreap x)))
-            xs
-            :initial-value nil)))
+  (let ((xs (copy-seq list))
+        (res nil))
+    (dotimes (i (length xs))
+      (setf res (insert res i (pop xs))))
+    res))
 
 #+swank (declaim (notinline %get-cnt %plus-cnt %update-cnt))
 #-swank (declaim (inline %get-cnt %plus-cnt %update-cnt))
@@ -324,16 +324,19 @@
           value))
 
 (defun range-update (itreap begin end value)
-  (multiple-value-bind (l c-r) (split itreap begin)
-    (multiple-value-bind (c r) (split c-r (- end begin))
-      (setf (itreap-update-lazy c) (updater (itreap-update-lazy c)
-                                            value)
-            (itreap-is-ulazy c) t
-            (itreap-acc c) (modifier (itreap-acc c)
-                                     value
-                                     (itreap-is-ulazy c)
-                                     (%get-cnt c)))
-      (merge l (merge c r)))))
+  (declare ((maybe itreap) itreap)
+           (fixnum begin end value))
+  (when (< begin end)
+    (multiple-value-bind (l c-r) (split itreap begin)
+      (multiple-value-bind (c r) (split c-r (- end begin))
+        (setf (itreap-update-lazy c) (updater (itreap-update-lazy c)
+                                              value)
+              (itreap-is-ulazy c) t
+              (itreap-acc c) (modifier (itreap-acc c)
+                                       value
+                                       (itreap-is-ulazy c)
+                                       (%get-cnt c)))
+        (merge l (merge c r))))))
 
 (defmacro fold (itreap begin end)
   (let ((res (gensym))
