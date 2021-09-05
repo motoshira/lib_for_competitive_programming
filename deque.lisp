@@ -44,7 +44,7 @@
   (= (deque-count d) (deque-size d)))
 
 (defmethod get-prev-index ((d deque) idx)
-  (declare (inline deque-get-next-index))
+  (declare (inline get-next-index))
   (if (zerop idx)
       (1- (deque-size d))
       (1- idx)))
