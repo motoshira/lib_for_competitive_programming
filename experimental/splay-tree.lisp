@@ -26,6 +26,20 @@
 (defmethod print-object ((obj node) s)
   (princ (dump obj) s))
 
+(defun %get-cnt (node)
+  (if (null node)
+      0
+      (node-cnt node)))
+
+(defun %update-cnt! (node)
+  (setf (node-cnt node)
+        (+ (%get-cnt (node-l node))
+           (%get-cnt (node-r node))
+           1)))
+
+(defun %push-up! (node)
+  (%update-cnt! node))
+
 (defun splay (node)
   (symbol-macrolet ((p (node-parent node))
                     (pp (node-parent p))
@@ -59,10 +73,16 @@
 (defun zig! (node dir)
   (symbol-macrolet ((p (node-parent node)))
     (ecase dir
-      (:right (setf (node-l p) (node-r node)
-                    (node-r node) p))
-      (:left (setf (node-r p) (node-l node)
-                   (node-l node) p)))))
+      (:right (progn
+                (setf (node-l p) (node-r node))
+                (%push-up! p)
+                (setf (node-r node) p)
+                (%push-up! node)))
+      (:left (progn
+               (setf (node-r p) (node-l node))
+               (%push-up! p)
+               (setf (node-l node) p)
+               (%push-up! node))))))
 
 (defun zig-zig! (node dir)
   ;; rotate parent -> rotate node
