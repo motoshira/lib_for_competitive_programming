@@ -26,7 +26,7 @@
 (defmethod print-object ((obj node) s)
   (princ (dump obj) s))
 
-(defun splay! (node)
+(defun splay (node)
   (symbol-macrolet ((p (node-parent node))
                     (pp (node-parent p))
                     (l (node-l node))
@@ -48,7 +48,8 @@
          (if (eq (node-r pp)
                  p)
              (zig-zig! pp :left)
-             (zig-zag! pp :left)))))))
+             (zig-zag! pp :left)))))
+    node))
 
 (defun toggle (dir)
   (ecase dir
@@ -72,3 +73,44 @@
   ;; dir is direction of rotate at the first time
   (zig! node dir)
   (zig! node (toggle dir)))
+
+#+nil
+(defun lower-bound (node value &optional (acc 0))
+  "Get max value x that satisfy: (<= (node-value (ref node x)) value)"
+  (assert node)
+  (if (<= (node-value node)
+          value)
+      (if (node-l node)
+          (lower-bound (node-l node)
+                       value
+                       (+ acc
+                          ()))
+          )))
+
+(defun %find-right-end (node)
+  (if (null (node-r node))
+      node
+      (%find-right-end (node-r node))))
+
+(defun merge (l r)
+  (let ((l (splay (%find-right-end l))))
+    (assert (null (node-r l)))
+    (setf (node-r l) r)
+    l))
+
+(defun %find (node key)
+  (let ((l-cnt (if (node-l node)
+                   (node-cnt (node-l node))
+                   0)))
+    (cond
+      ((= key l-cnt) node)
+      ((< key l-cnt)
+       (%find (node-l node) key))
+      (:else
+       (%find (node-r node) (- key l-cnt 1))))))
+
+(defun split (node key)
+  (let* ((k-th (splay (%find node key)))
+         (r (node-r k-th)))
+    (setf (node-r k-th) nil)
+    (values k-th r)))
