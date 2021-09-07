@@ -4,6 +4,24 @@
 
 ;; modint functions
 
+(defpackage #:modint
+  (:use #:cl)
+  (:nicknames #:m #:mod)
+  (:shadow #:+
+           #:-
+           #:*
+           #:/)
+  (:export #:mint
+           #:modint
+           #:+
+           #:-
+           #:*
+           #:/
+           #:mod-inv
+           #:*mod*))
+
+(in-package #:modint)
+
 (define-symbol-macro *mod* 1000000007)
 ;; (define-symbol-macro *mod* 998244353)
 
@@ -13,6 +31,7 @@
          (ftype (function (integer) mint) modint))
 (defun modint (integer)
   ;; (integer) -> (mint)
+  ;; TODO TLE on big negative integer
   (declare (integer integer))
   (loop while (minusp integer)
         do (incf integer *mod*))
@@ -42,10 +61,18 @@
 
 
 
-(define-modulo-operation mod+ (modint (+ x y)) `(modint (+ ,x ,y)))
-(define-modulo-operation mod- (modint (- x y)) `(modint (- ,x ,y)))
-(define-modulo-operation mod* (modint (* x y)) `(modint (* ,x ,y)))
-(define-modulo-operation mod/ (modint (* x (mod-inv y))) `(modint (* ,x (mod-inv ,y))))
+(define-modulo-operation m:+
+    (modint (cl:+ (the fixnum x)
+                  (the fixnum y)))
+  `(modint (cl:+ (the fixnum ,x)
+                 (the fixnum ,y))))
+(define-modulo-operation m:-
+    (modint (cl:- (the fixnum x)
+                  (the fixnum y)))
+  `(modint (cl:- (the fixnum ,x)
+                 (the fixnum ,y))))
+(define-modulo-operation m:* (modint (cl:* x y)) `(modint (cl:* ,x ,y)))
+(define-modulo-operation m:/ (modint (cl:* x (mod-inv y))) `(modint (cl:* ,x (mod-inv ,y))))
 
 (declaim (ftype (function (fixnum) mint) mod-inv))
 (defun mod-inv (a)
@@ -58,10 +85,15 @@
     (declare (fixnum b u v))
     (loop until (zerop b) do
       (let ((w (truncate a b)))
-        (declare (fixnum w))
-        (decf a (the fixnum (* w b)))
-        (rotatef a b)
-        (decf u (the fixnum (* w v)))
+        (decf (the fixnum a) (the fixnum
+                                  (* (the fixnum w)
+                                     (the fixnum b))))
+        (rotatef (the fixnum a)
+                 (the fixnum b))
+        (decf (the fixnum u)
+              (the fixnum
+                   (* (the fixnum w)
+                      (the fixnum v))))
         (rotatef u v)))
     (modint u)))
 
