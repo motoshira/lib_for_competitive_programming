@@ -19,9 +19,17 @@
 
 (in-package #:sk)
 
+(defstruct value-container
+  (value nil :type fixnum))
+
+(declaim (inline unwrap))
+(defun unwrap (value-container)
+  (declare (value-container value-container))
+  (value-container-value value-container))
+
 (defstruct (heap (:constructor make-heap (key value &key l r)))
   (key key :type fixnum)
-  (value value :type t)
+  (value (make-value :value value) :type value-container)
   (l nil :type (or null heap))
   (r nil :type (or null heap)))
 
@@ -30,7 +38,7 @@
         (h heap))
     (loop until (empty-p h)
           do (push (list (heap-key h)
-                         (heap-value h))
+                         (unwrap (heap-value h)))
                    res)
              (setf h (meld (heap-l h)
                            (heap-r h))))
@@ -45,13 +53,18 @@
       (values (heap-key heap)
               (heap-value heap))))
 
-(defun meld (l r)
-  (declare ((or null heap) l r))
+(defun meld (l r &key (comparator (lambda (x y)
+                                    (declare (fixnum x y))
+                                    (< x y))))
+  (declare ((or null heap) l r)
+           ((function (fixnum fixnum) boolean) comparator))
   (the (or null heap)
        (cond
          ((null l) r)
          ((null r) l)
-         (:else (when (> (heap-key l) (heap-key r))
+         (:else (when (funcall (complement comparator)
+                               (heap-key l)
+                               (heap-key r))
                   (rotatef l r))
                 (setf (heap-r l) (meld (heap-r l) r))
                 (rotatef (heap-l l) (heap-r l))
