@@ -55,6 +55,7 @@
   (null heap))
 
 (defun peak (heap)
+  (declare ((or null heap) heap))
   (if (null heap)
       (values nil nil)
       (values (heap-key heap)
