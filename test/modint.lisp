@@ -41,6 +41,11 @@
              (m:* (m:/ x y) y)))
       (ok (= (f 10 3)
              10))))
+  (testing "mod-pow"
+    (ok (= (m:mod-power 10 2)
+           100)
+        (= (m:mod-power 10 100)
+           (reduce #'m:* (loop repeat 100 collect 10)))))
   (testing "mod-fact and combi"
     (let ((table (m:make-mod-fact-table 101))
           (get-fact (lambda (x)

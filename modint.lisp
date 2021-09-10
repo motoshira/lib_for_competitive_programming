@@ -18,6 +18,7 @@
            #:*
            #:/
            #:mod-inv
+           #:mod-power
            #:make-mod-fact-table
            #:mod-combi-with-table
            #:incmodf
