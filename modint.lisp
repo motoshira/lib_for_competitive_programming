@@ -19,7 +19,11 @@
            #:/
            #:mod-inv
            #:make-mod-fact-table
-           #:mod-combi-with-table))
+           #:mod-combi-with-table
+           #:incmodf
+           #:decmodf
+           #:mulmodf
+           #:divmodf))
 
 (in-package #:modint)
 
