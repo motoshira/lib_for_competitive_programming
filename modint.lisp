@@ -141,3 +141,5 @@
 ;;;
 ;;; End of inserted contents
 ;;;
+
+#+swank (load (merge-pathnames "test/modint.lisp" (uiop:current-lisp-file-pathname)) :if-does-not-exist nil)
