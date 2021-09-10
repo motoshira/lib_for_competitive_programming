@@ -8,6 +8,8 @@
 (in-package #:test/modint)
 
 (deftest modint-test
-  (testing "test"))
+  (testing "+"
+    (ok (= (m:+ 1 2)
+           3))))
 
 (rove:run-suite *package*)

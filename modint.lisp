@@ -37,7 +37,7 @@
            integer
            (mod integer *mod*))))
 
-(defun %operate (fn &rest args)
+(defun %operate (fn args)
   (declare ((function (fixnum fixnum) fixnum) fn))
   (if (null args)
       0
@@ -47,13 +47,19 @@
               :initial-value (first args))))
 
 (defun + (&rest args)
-  (%operate cl:+ args))
+  (%operate (lambda (x y)
+              (cl:+ x y))
+            args))
 
 (defun - (&rest args)
-  (%operate cl:- args))
+  (%operate (lambda (x y)
+              (cl:- x y))
+            args))
 
 (defun * (&rest args)
-  (%operate cl:* args))
+  (%operate (lambda (x y)
+              (cl:* x y))
+            args))
 
 (defun / (&rest args)
   (%operate (lambda (x y)
