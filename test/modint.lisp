@@ -34,11 +34,22 @@
     (flet ((%get-one (x)
              (m:* x (m:mod-inv x))))
       (ok (= (%get-one 1) 1))
+      (ok (= (%get-one 3) 1))
       (ok (= (%get-one (1- m:*mod*)) 1))))
   (testing "/"
     (flet ((f (x y)
              (m:* (m:/ x y) y)))
       (ok (= (f 10 3)
-             10)))))
+             10))))
+  (testing "mod-fact"
+    (let ((table (m:make-mod-fact-table 101))
+          (get-fact (lambda (x)
+                      (reduce #'m:*
+                              (loop for x from 1 to x
+                                    collect x)))))
+      (ok (= (aref table 10)
+             (funcall get-fact 10)))
+      (ok (= (aref table 100)
+             (funcall get-fact 100))))))
 
 (rove:run-suite *package*)

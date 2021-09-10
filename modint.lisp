@@ -11,13 +11,15 @@
            #:-
            #:*
            #:/)
-  (:export #:modint
+  (:export #:*mod*
+           #:modint
            #:+
            #:-
            #:*
            #:/
            #:mod-inv
-           #:*mod*))
+           #:make-mod-fact-table
+           #:mod-combi-with-table))
 
 (in-package #:modint)
 
