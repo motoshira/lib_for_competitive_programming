@@ -60,6 +60,12 @@
               (* x (mod-inv y)))
             args))
 
+(defmacro %expand (fn x y)
+  `(modint (funcall (the (function (fixnum fixnum) fixnum)
+                         ,fn)
+                    ,x
+                    (modint ,y))))
+
 (declaim (ftype (function (fixnum) fixnum) mod-inv))
 (defun mod-inv (a)
   "Reference:https://qiita.com/drken/items/3b4fdf0a78e7a138cd9a"
