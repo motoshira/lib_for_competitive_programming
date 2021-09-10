@@ -66,6 +66,8 @@
               (* x (mod-inv y)))
             args))
 
+;; TODO compiler-macro
+
 (defmacro %expand (fn x y)
   `(modint (funcall (the (function (fixnum fixnum) fixnum)
                          ,fn)
@@ -75,8 +77,7 @@
 (declaim (ftype (function (fixnum) fixnum) mod-inv))
 (defun mod-inv (a)
   "Reference:https://qiita.com/drken/items/3b4fdf0a78e7a138cd9a"
-  (declare (fixnum a)
-           (optimize (speed 3)))
+  (declare (fixnum a))
   (let ((b *mod*)
         (u 1)
         (v 0))
@@ -84,14 +85,14 @@
     (loop until (zerop b) do
       (let ((w (truncate a b)))
         (decf (the fixnum a) (the fixnum
-                                  (* (the fixnum w)
-                                     (the fixnum b))))
+                                  (cl:* (the fixnum w)
+                                        (the fixnum b))))
         (rotatef (the fixnum a)
                  (the fixnum b))
         (decf (the fixnum u)
               (the fixnum
-                   (* (the fixnum w)
-                      (the fixnum v))))
+                   (cl:* (the fixnum w)
+                         (the fixnum v))))
         (rotatef u v)))
     (modint u)))
 
@@ -139,9 +140,9 @@
                (< n 0)
                (< k 0))
            0
-           (* (aref table n)
-              (mod-inv (aref table k))
-              (mod-inv (aref table (the fixnum (- n k))))))))
+           (/ (aref table n)
+              (aref table k)
+              (aref table (the fixnum (cl:- n k)))))))
 
 
 ;;;
