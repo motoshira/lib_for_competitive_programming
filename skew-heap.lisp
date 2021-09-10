@@ -47,6 +47,18 @@
     (values (reverse res)
             new-heap)))
 
+(defmacro heap->list (heap comparator)
+  (let ((res (gensym)))
+    (multiple-value-bind (args argvs new setter getter)
+        (get-setf-expansion heap)
+      `(let ,(mapcar #'list args argvs)
+         (multiple-value-bind (,res ,@new)
+             (%heap-to-list ,getter ,comparator)
+           (declare (list ,res)
+                    ((or null heap) ,@new))
+           ,setter
+           ,res)))))
+
 (defun empty-p (heap)
   (null heap))
 
