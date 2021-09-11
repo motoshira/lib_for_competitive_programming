@@ -19,8 +19,10 @@
 
 (in-package #:sk)
 
+;; Change here according to the problem
+
 (defstruct value-container
-  (value nil :type fixnum))
+  (value nil :type list))
 
 (declaim (inline unwrap))
 (defun unwrap (value-container)
@@ -35,39 +37,14 @@
 
 ;; TODO Redefine with setf macro
 
-(defun %heap-to-list (heap comparator)
-  (let ((new-heap nil)
-        (res nil))
-    (loop until (sk:empty-p heap)
-          do (multiple-value-bind (key val)
-                 (sk:pop! heap comparator)
-               (sk:push! new-heap key val comparator)
-               (push (list key val)
-                     res)))
-    (values (reverse res)
-            new-heap)))
-
-(defmacro heap->list (heap comparator)
-  (let ((res (gensym)))
-    (multiple-value-bind (args argvs new setter getter)
-        (get-setf-expansion heap)
-      `(let ,(mapcar #'list args argvs)
-         (multiple-value-bind (,res ,@new)
-             (%heap-to-list ,getter ,comparator)
-           (declare (list ,res)
-                    ((or null heap) ,@new))
-           ,setter
-           ,res)))))
-
 (defun empty-p (heap)
   (null heap))
 
 (defun peak (heap)
   (declare ((or null heap) heap))
   (if (null heap)
-      (values nil nil)
-      (values (heap-key heap)
-              (unwrap (heap-value heap)))))
+      nil
+      (unwrap (heap-value heap))))
 
 (defun meld (l r comparator)
   (declare ((or null heap) l r)
@@ -93,8 +70,7 @@
          ,setter))))
 
 (defmacro pop! (heap comparator)
-  (let ((key (gensym))
-        (value (gensym)))
+  (let ((value (gensym)))
     (multiple-value-bind (args argvs val setter getter)
         (get-setf-expansion heap)
       `(let ,(mapcar #'list args argvs)
@@ -102,10 +78,9 @@
                             (when ,getter (heap-r ,getter))
                             ,comparator)))
 
-           (multiple-value-bind (,key ,value)
-               (peak ,getter)
+           (let ((,value (peak ,getter)))
              ,setter
-             (values ,key ,value)))))))
+             ,value))))))
 
 ;;;
 ;;; EOF
