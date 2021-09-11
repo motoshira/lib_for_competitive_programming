@@ -81,6 +81,54 @@
                     ,x
                     (modint ,y))))
 
+(define-compiler-macro m:+ (&whole form &rest args)
+  (if (> (length args) 10)
+      form
+      (reduce (lambda (acc x)
+                `(%expand (lambda (x y)
+                            (declare (fixnum x y))
+                            (cl:+ x y))
+                          ,acc
+                          ,x))
+              (rest args)
+              :initial-value `(modint ,(first args)))))
+
+(define-compiler-macro m:- (&whole form &rest args)
+  (if (> (length args) 10)
+      form
+      (reduce (lambda (acc x)
+                `(%expand (lambda (x y)
+                            (declare (fixnum x y))
+                            (cl:- x y))
+                          ,acc
+                          ,x))
+              (rest args)
+              :initial-value `(modint ,(first args)))))
+
+(define-compiler-macro m:* (&whole form &rest args)
+  (if (> (length args) 10)
+      form
+      (reduce (lambda (acc x)
+                `(%expand (lambda (x y)
+                            (declare (fixnum x y))
+                            (cl:* x y))
+                          ,acc
+                          ,x))
+              (rest args)
+              :initial-value `(modint ,(first args)))))
+
+(define-compiler-macro m:/ (&whole form &rest args)
+  (if (> (length args) 10)
+      form
+      (reduce (lambda (acc x)
+                `(%expand (lambda (x y)
+                            (declare (fixnum x y))
+                            (cl:* x (mod-inv y)))
+                          ,acc
+                          ,x))
+              (rest args)
+              :initial-value `(modint ,(first args)))))
+
 (declaim (ftype (function (fixnum) fixnum) mod-inv))
 (defun mod-inv (a)
   "Reference:https://qiita.com/drken/items/3b4fdf0a78e7a138cd9a"
