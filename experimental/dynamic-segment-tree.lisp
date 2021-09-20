@@ -1,10 +1,8 @@
 (defpackage dynamic-segment-tree
   (:use #:cl)
   (:nicknames #:dseg)
-  (:export #:dynamic-segtree
-           #:dynamic-segment-tree
-           #:make-monoid
-           #:build
+  (:export #:dynamic-segment-tree
+           #:make-dynamic-segment-tree
            #:fold
            #:update!))
 
@@ -20,7 +18,7 @@
   (l nil :type (or null node))
   (r nil :type (or null node)))
 
-(defstruct (monoid (:constructor make-monoid))
+(defstruct (monoid (:constructor %make-monoid))
   (id nil :type t)
   (op nil :type (function (t t) boolean)))
 
@@ -34,14 +32,22 @@
            :initarg :monoid
            :initform (error "Initial value must be specified."))))
 
-;; Facade pattern
+;; Public
+
+(defun make-dynamic-segment-tree (op identity)
+  (make-instance 'dynamic-segment-tree
+                  :monoid (%make-monoid :op op
+                                        :id identity)))
 
 (defmethod fold ((dseg dynamic-segment-tree) l r)
   (%fold (dseg-root dseg) l r 0 +max+ (dseg-monoid dseg)))
 
 (defmethod update! ((dseg dynamic-segment-tree) key value)
   (setf (dseg-root dseg)
-        (%update (dseg-root dseg) key value 0 +max+ (dseg-monoid dseg))))
+        (%update (dseg-root dseg) key value 0 +max+ (dseg-monoid dseg)))
+  dseg)
+
+;; Private
 
 (defmethod dump ((dseg dynamic-segment-tree))
   (%dump dseg))
@@ -100,21 +106,29 @@
             (<= rr r))
        (node-acc node))
       (t
-       (let ((mid (ash (+ ll rr) -1)))
-         (%aggregate (%fold (node-l node)
-                            l
-                            r
-                            ll
-                            mid
-                            m)
-                     (node-value node)
-                     (%fold (node-r node)
-                            l
-                            r
-                            mid
-                            rr
-                            m)
-                     m))))))
+       (let ((mid (ash (+ ll rr) -1))
+             (res id))
+         (setf res (funcall op
+                            res
+                            (%fold (node-l node)
+                                   l
+                                   r
+                                   ll
+                                   mid
+                                   m)))
+         (when (<= l (node-key node) (1- r))
+           (setf res (funcall op
+                              res
+                              (node-value node))))
+         (setf res (funcall op
+                            res
+                            (%fold (node-r node)
+                                   l
+                                   r
+                                   mid
+                                   rr
+                                   m)))
+         res)))))
 
 (defun %update (node key value ll rr m)
   (with-slots (op id) m
