@@ -48,7 +48,7 @@
                   :monoid (%make-monoid :op op
                                         :id identity)))
 
-#-swank (decalim (inline fold update!))
+#-swank (declaim (inline fold update!))
 (defmethod fold ((dseg dynamic-segment-tree) l r)
   (%fold (dseg-root dseg) l r 0 +max+ (dseg-monoid dseg)))
 
