@@ -29,7 +29,7 @@
 
 (defstruct (monoid (:constructor %make-monoid))
   (id nil :type t)
-  (op nil :type (function (t t) boolean)))
+  (op nil :type (function (t t) t)))
 
 (defclass dynamic-segment-tree ()
   ((root :type (or null node)
@@ -48,6 +48,7 @@
                   :monoid (%make-monoid :op op
                                         :id identity)))
 
+#-swank (decalim (inline fold update!))
 (defmethod fold ((dseg dynamic-segment-tree) l r)
   (%fold (dseg-root dseg) l r 0 +max+ (dseg-monoid dseg)))
 
@@ -83,11 +84,16 @@
     (princ (dump object) stream)
     (fresh-line stream)))
 
+#-swank (declaim (inline %get))
 (defun %get (node m)
+  (declare (node node)
+           (monoid m))
   (if node (node-acc node) (monoid-id m)))
 
+#-swank (declaim (inline %aggregate))
 (defun %aggregate (l mid r m)
-  (declare (fixnum l mid r))
+  (declare (fixnum l mid r)
+           (monoid m))
   (with-slots (op) m
     (funcall op
              (funcall op
@@ -95,6 +101,7 @@
                       mid)
              r)))
 
+#-swank (declaim (inline %update-acc!))
 (defun %update-acc! (node m)
   (declare (node node)
            (monoid m))
@@ -105,6 +112,9 @@
                     m)))
 
 (defun %fold (node l r ll rr m)
+  (declare (node node)
+           (fixnum l r ll rr)
+           (monoid m))
   (with-slots (op id) m
     (cond
       ((or (null node)
@@ -117,6 +127,7 @@
       (t
        (let ((mid (ash (+ ll rr) -1))
              (res id))
+         (declare (fixnum mid))
          (setf res (funcall op
                             res
                             (%fold (node-l node)
