@@ -317,12 +317,12 @@
                  right
                  (tr-val value))
         treap
-      (or (%upper-bound left value acc)
+      (or (when (>= tr-val value)
+            (%upper-bound left value acc))
           (when (>= tr-val value)
             (+ acc
                (%get-cnt left)))
-          (when (and right
-                     (>= (treap-value right) value))
+          (when right
             (%upper-bound right value (the uint
                                            (+ acc
                                               (%get-cnt left)
