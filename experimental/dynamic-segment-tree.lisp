@@ -86,7 +86,7 @@
 
 #-swank (declaim (inline %get))
 (defun %get (node m)
-  (declare (node node)
+  (declare ((or null node) node)
            (monoid m))
   (if node (node-acc node) (monoid-id m)))
 
@@ -112,7 +112,7 @@
                     m)))
 
 (defun %fold (node l r ll rr m)
-  (declare (node node)
+  (declare ((or null node) node)
            (fixnum l r ll rr)
            (monoid m))
   (with-slots (op id) m
