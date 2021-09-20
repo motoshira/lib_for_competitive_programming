@@ -151,6 +151,10 @@
          res)))))
 
 (defun %update (node key value ll rr m)
+  (declare ((or null node) node)
+           (fixnum key ll rr)
+           (t value)
+           (monoid m))
   (with-slots (op id) m
     (if (null node)
         (%make-node key value)
