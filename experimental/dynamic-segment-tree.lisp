@@ -4,7 +4,7 @@
 
 ;; Dynamic Segment Tree
 ;; Reference:
-;;  「動的な Segment Tree のテクニック」
+;;  「動的なSegment Treeのテクニック」
 ;;  https://kazuma8128.hatenablog.com/entry/2018/11/29/093827
 
 (defpackage dynamic-segment-tree
