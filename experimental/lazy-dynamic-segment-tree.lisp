@@ -2,20 +2,20 @@
 ;;; BOF
 ;;;
 
-;; Dynamic Segment Tree
+;; Lazy Dynamic Segment Tree
 ;; Reference:
 ;;  「動的なSegment Treeのテクニック」
 ;;  https://kazuma8128.hatenablog.com/entry/2018/11/29/093827
 
-(defpackage dynamic-segment-tree
+(defpackage lazy-dynamic-segment-tree
   (:use #:cl)
-  (:nicknames #:dseg)
-  (:export #:dynamic-segment-tree
-           #:make-dynamic-segment-tree
+  (:nicknames #:lzd)
+  (:export #:lazy-dynamic-segment-tree
+           #:make-lazy-dynamic-segment-tree
            #:fold
            #:update!))
 
-(in-package #:dynamic-segment-tree)
+(in-package #:lazy-dynamic-segment-tree)
 
 (defconstant +base+ 32)
 (defconstant +max+ (ash 1 +base+))
@@ -31,39 +31,39 @@
   (id nil :type t)
   (op nil :type (function (t t) t)))
 
-(defclass dynamic-segment-tree ()
+(defclass lazy-dynamic-segment-tree ()
   ((root :type (or null node)
-         :accessor dseg-root
+         :accessor lds-root
          :initarg :root
          :initform nil)
    (monoid :type monoid
-           :accessor dseg-monoid
+           :accessor lds-monoid
            :initarg :monoid
            :initform (error "Initial value must be specified."))))
 
 ;; Public
 
-(defun make-dynamic-segment-tree (op identity)
-  (make-instance 'dynamic-segment-tree
+(defun make-lazy-dynamic-segment-tree (op identity)
+  (make-instance 'lazy-dynamic-segment-tree
                   :monoid (%make-monoid :op op
                                         :id identity)))
 
 #-swank (declaim (inline fold update!))
-(defmethod fold ((dseg dynamic-segment-tree) l r)
-  (%fold (dseg-root dseg) l r 0 +max+ (dseg-monoid dseg)))
+(defmethod fold ((lds lazy-dynamic-segment-tree) l r)
+  (%fold (lds-root lds) l r 0 +max+ (lds-monoid lds)))
 
-(defmethod update! ((dseg dynamic-segment-tree) key value)
-  (setf (dseg-root dseg)
-        (%update (dseg-root dseg) key value 0 +max+ (dseg-monoid dseg)))
-  dseg)
+(defmethod update! ((lds lazy-dynamic-segment-tree) key value)
+  (setf (lds-root lds)
+        (%update (lds-root lds) key value 0 +max+ (lds-monoid lds)))
+  lds)
 
 ;; Private
 
-(defmethod dump ((dseg dynamic-segment-tree))
-  (%dump dseg))
+(defmethod dump ((lds lazy-dynamic-segment-tree))
+  (%dump lds))
 
-(defun %dump (dseg)
-  (with-slots (root monoid) dseg
+(defun %dump (lds)
+  (with-slots (root monoid) lds
     (let ((res nil))
       (sb-int:named-let rec ((node root))
         (when (node-l node)
@@ -77,7 +77,7 @@
           (rec (node-r node))))
       (reverse res))))
 
-(defmethod print-object ((object dynamic-segment-tree)
+(defmethod print-object ((object lazy-dynamic-segment-tree)
                          stream)
   (print-unreadable-object (object stream)
     (fresh-line stream)
