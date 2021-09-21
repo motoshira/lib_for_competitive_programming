@@ -60,6 +60,11 @@
 (defmethod ref ((lds lazy-dynamic-segment-tree) key)
   (fold lds key (1+ key)))
 
+(defmethod range-update! ((lds lazy-dynamic-segment-tree) l r value)
+  (setf (lds-root lds)
+        (%range-update (lds-root lds) key value 0 +max+ (lds-monoid lds)))
+  lds)
+
 ;; Private
 
 (defmethod dump ((lds lazy-dynamic-segment-tree))
