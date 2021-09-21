@@ -48,7 +48,7 @@
                   :monoid (%make-monoid :op op
                                         :id identity)))
 
-#-swank (declaim (inline fold update!))
+#-swank (declaim (inline fold update! ref))
 (defmethod fold ((lds lazy-dynamic-segment-tree) l r)
   (%fold (lds-root lds) l r 0 +max+ (lds-monoid lds)))
 
@@ -56,6 +56,9 @@
   (setf (lds-root lds)
         (%update (lds-root lds) key value 0 +max+ (lds-monoid lds)))
   lds)
+
+(defmethod ref ((lds lazy-dynamic-segment-tree) key)
+  (fold lds key (1+ key)))
 
 ;; Private
 
