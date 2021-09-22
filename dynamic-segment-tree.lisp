@@ -57,6 +57,12 @@
         (%update (dseg-root dseg) key value 0 +max+ (dseg-monoid dseg)))
   dseg)
 
+(defmethod ref ((dseg dynamic-segment-tree) key)
+  (fold dseg key (1+ key)))
+
+(defun (setf ref) (value dseg key)
+  (update! dseg key value))
+
 ;; Private
 
 (defmethod dump ((dseg dynamic-segment-tree))
@@ -66,15 +72,16 @@
   (with-slots (root monoid) dseg
     (let ((res nil))
       (sb-int:named-let rec ((node root))
-        (when (node-l node)
-          (rec (node-l node)))
-        (with-slots (key value acc) node
-          (push (list :key key
-                      :value value
-                      :acc acc)
-                res))
-        (when (node-r node)
-          (rec (node-r node))))
+        (when node
+          (when (node-l node)
+            (rec (node-l node)))
+          (with-slots (key value acc) node
+            (push (list :key key
+                        :value value
+                        :acc acc)
+                  res))
+          (when (node-r node)
+            (rec (node-r node)))))
       (reverse res))))
 
 (defmethod print-object ((object dynamic-segment-tree)
