@@ -28,7 +28,7 @@
   (l nil :type (or null node))
   (r nil :type (or null node)))
 
-(defstruct (operator-rmonoid (:constructor %make-operator-monoid))
+(defstruct (operator-monoid (:constructor %make-operator-monoid))
   (op nil :type (function (t t) t))
   (id nil :type (function () t)))
 
@@ -44,10 +44,18 @@
          :accessor lds-root
          :initarg :root
          :initform nil)
-   (monoid :type monoid
-           :accessor lds-monoid
-           :initarg :monoid
-           :initform (error "Initial value must be specified."))))
+   (operator :type operator-monoid
+             :accessor lds-operator
+             :initarg :operator
+             :initform (error "Initial value must be specified."))
+   (updater :type updater-monoid
+            :accessor lds-updater
+            :initarg :updater
+            :initform (error "Initial value must be specified."))
+   (modifier :type modifier
+             :accessor lds-modifier
+             :initarg :modifier
+             :initform (error "Initial value must be specified."))))
 
 ;; Public
 
