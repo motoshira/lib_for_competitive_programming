@@ -28,9 +28,16 @@
   (l nil :type (or null node))
   (r nil :type (or null node)))
 
-(defstruct (monoid (:constructor %make-monoid))
-  (id nil :type t)
-  (op nil :type (function (t t) t)))
+(defstruct (operator-rmonoid (:constructor %make-operator-monoid))
+  (op nil :type (function (t t) t))
+  (id nil :type (function () t)))
+
+(defstruct (updater-monoid (:constructor %make-updater-monoid))
+  (op nil :type (function (t t) t))
+  (id nil :type (function () t)))
+
+(defstruct (modifier (:constructor %make-modifier))
+  (op nil :type (function (t t updater-monoid fixnum) t)))
 
 (defclass lazy-dynamic-segment-tree ()
   ((root :type (or null node)
