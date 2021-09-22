@@ -54,9 +54,10 @@
   (%fold (dseg-root dseg) l r 0 +max+ (dseg-monoid dseg)))
 
 (defmethod update! ((dseg dynamic-segment-tree) key value)
-  (setf (dseg-root dseg)
-        (%update (dseg-root dseg) key value 0 +max+ (dseg-monoid dseg)))
-  dseg)
+  (with-slots (root monoid) dseg
+    (setf root
+          (%update root key value 0 +max+ monoid))
+    dseg))
 
 (defmethod ref ((dseg dynamic-segment-tree) key)
   (fold dseg key (1+ key)))
