@@ -13,6 +13,7 @@
   (:export #:dynamic-segment-tree
            #:make-dynamic-segment-tree
            #:fold
+           #:ref
            #:update!))
 
 (in-package #:dynamic-segment-tree)
