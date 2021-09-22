@@ -20,10 +20,11 @@
 (defconstant +base+ 32)
 (defconstant +max+ (ash 1 +base+))
 
-(defstruct (node (:constructor %make-node (k v)))
+(defstruct (node (:constructor %make-node (k v id)))
   (key k :type fixnum)
   (value v :type t)
   (acc v :type t)
+  (lazy id :type t)
   (l nil :type (or null node))
   (r nil :type (or null node)))
 
