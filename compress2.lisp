@@ -4,45 +4,48 @@
 
 ;; 座標圧縮
 
-(declaim (inline compress get-unzipped-value))
-(labels ((%bs (fn ok ng)
-           (loop while (> (abs (- ok ng)) 1)
-              for mid = (ash (+ ok ng) -1)
-              if (funcall fn mid)
-              do (setf ok mid)
-              else do (setf ng mid)
-              finally
-                (return ok)))
-         (%remove-duplicates (xs)
-           (let ((memo (make-hash-table :test #'equal :size 100000))
-                 (res (make-array (length xs) :adjustable (adjustable-array-p xs) :fill-pointer 0)))
-             (map nil
-                  (lambda (x)
-                    (unless (gethash x memo)
-                      (vector-push x res)))
-                  xs)
-             xs)))
-  (declare (inline %bs))
-  
-  (defun compress (vector &optional (index-origin 0))
-    (let* ((n (length vector))
-           (zipped (make-array n :element-type (array-element-type vector)
-                                 :adjustable (adjustable-array-p vector)))
-           (unique (sort (%remove-duplicates vector) #'<))
-           (m (length unique)))
-      (loop for i below n
-         for x = (aref vector i)
-         do (setf (aref zipped i)
-                  (+ (1+ (%bs (lambda (j)
-                               (< (aref unique j) x))
-                             -1
-                             m))
-                     index-origin))
-         finally
-           (return (values zipped unique)))))
+(defpackage compress
+  (:use #:cl)
+  (:nicknames #:comp)
+  (:export #:compressed
+           #:build
+           #:compress
+           #:restore))
 
-  (defun get-unzipped-value (unique value)
-    (aref unique value)))
+(in-package #:compress)
+
+(defstruct compressed
+  (data nil :type (simple-array integer 1))
+  (size nil :type fixnum))
+
+(defmethod build ((sequence sequence))
+  (flet ((%remove-duplicates (sequence)
+           (coerce (remove-duplicates (coerce sequence 'list))
+                   '(simple-array integer 1))))
+    (declare (inline %remove-duplicates))
+    (let ((uniq (%remove-duplicates sequence)))
+      (make-compressed :data (sort uniq #'<)
+                       :size (length uniq)))))
+
+(defmethod compress ((compressed compressed) (value integer))
+  (with-slots (data size) compressed
+    (labels ((%lb (ok ng)
+               (declare (fixnum ok ng))
+               (if (<= (abs (- ok ng))
+                       1)
+                   ok
+                   (let ((mid (ash (+ ok ng) -1)))
+                     (declare (fixnum mid))
+                     (if (< (aref data mid)
+                            value)
+                         (%lb mid ng)
+                         (%lb ok mid))))))
+      (1+ (%lb -1 (1+ size))))))
+
+(defmethod restore ((compressed compressed) (value fixnum))
+  (with-slots (data size) compressed
+    (when (<= 0 value (1- size))
+      (aref data value))))
 
 ;;;
 ;;; EOF
