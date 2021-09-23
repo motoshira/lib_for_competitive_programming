@@ -44,7 +44,7 @@
 
 ;; Public
 
-(defun make-dynamic-segment-tree (op identity)
+(defun make-dynamic-segment-tree (&key op identity)
   (make-instance 'dynamic-segment-tree
                   :monoid (%make-monoid :op op
                                         :id identity)))
